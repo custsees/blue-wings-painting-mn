@@ -2,16 +2,24 @@
 
 /*
   Palette is measured, not chosen:
-  --blue   #5170FF  sampled from the client logo (37.2% of its opaque pixels)
-  --ink    #000000  the logo's ring and lettering
-  --cedar  #8A5730  sampled from the real deck-after photo
+  --blue        #0062FB  sampled from the wings in the 2026 logo
+  --logo-ground #1F1F1F  the logo artwork's own background
+  --cedar       #8A5730  sampled from the real deck-after photo
   See the private fact-and-proof ledger.
+
+  #0062FB carries white text at 5.07:1, so the primary action uses the true
+  brand blue. The previous logo's periwinkle (#5170FF) only managed 4.11:1 and
+  had to be darkened for buttons; that workaround is gone.
 */
 :root {
-  --blue: #5170ff;
-  --blue-deep: #2f47c8;
-  --blue-dark: #16205c;
-  --blue-wash: #eef1ff;
+  --blue: #0062fb;
+  --blue-deep: #0049c4;
+  --blue-dark: #002d7a;
+  --blue-wash: #e8f0ff;
+  /* The logo is a dark-ground composite, not a transparent mark. This is its
+     own background colour — 1.19:1 against --ink, so it sits on dark surfaces
+     essentially seamlessly. */
+  --logo-ground: #1f1f1f;
 
   --ink: #0a0b10;
   --ink-soft: #14161f;
@@ -108,7 +116,7 @@ textarea {
 }
 
 ::selection {
-  background: var(--blue-deep);
+  background: var(--blue);
   color: #fff;
 }
 
@@ -159,7 +167,7 @@ textarea {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--blue-deep);
+  color: var(--blue);
 }
 
 .on-ink .eyebrow {
@@ -190,14 +198,8 @@ textarea {
 
 /* ---------- buttons ---------- */
 
-/*
-  White on the raw logo blue (#5170FF) is 4.11:1 — under the 4.5:1 AA floor for
-  text this size. Anything carrying white text uses --blue-deep (7.35:1)
-  instead; #5170FF stays for large display text, rules, washes and focus rings,
-  where it passes comfortably.
-*/
 .btn {
-  --btn-bg: var(--blue-deep);
+  --btn-bg: var(--blue);
   --btn-fg: #fff;
   display: inline-flex;
   align-items: center;
@@ -222,7 +224,7 @@ textarea {
 }
 
 .btn:hover {
-  --btn-bg: var(--blue-dark);
+  --btn-bg: var(--blue-deep);
   transform: translateY(-2px);
 }
 
@@ -322,6 +324,8 @@ textarea {
 }
 
 .ft-brand img {
+  width: 150px;
+  height: auto;
   margin-bottom: 1rem;
 }
 
@@ -430,10 +434,8 @@ textarea {
   }
 }
 
-/* The supplied logo file has no alpha channel — it is a circular badge sitting
-   on an opaque white square, so it renders as a white box on dark surfaces.
-   Clipping to a circle removes the corners without resampling or colour-keying
-   (which would leave a halo). Drop this once a transparent source arrives. */
+/* The logo is a dark-ground composite (#1F1F1F), which is all but identical to
+   --ink, so it needs no cutout or tile on the footer — it simply sits there. */
 .ft-brand img {
-  border-radius: 50%;
+  border-radius: 4px;
 }

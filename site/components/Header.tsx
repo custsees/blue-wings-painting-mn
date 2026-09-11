@@ -46,13 +46,16 @@ export default function Header() {
     <header className={`hdr${scrolled ? ' is-scrolled' : ''}`}>
       <div className="wide hdr-bar">
         <Link href="/" className="brand" aria-label={`${business.nameFull} — home`}>
-          <Image
-            src="/img/blue-wings-logo.png"
-            alt=""
-            width={44}
-            height={44}
-            priority
-          />
+          <span className="brand-mark" aria-hidden="true">
+            <Image
+              src="/img/blue-wings-logo.jpg"
+              alt=""
+              width={1123}
+              height={1123}
+              priority
+              sizes="76px"
+            />
+          </span>
           <span className="brand-text">
             <span className="brand-name">Blue Wings</span>
             <span className="brand-sub">Painting MN</span>
@@ -118,12 +121,21 @@ export default function Header() {
       </div>
 
       <style jsx>{`
+        /*
+          The 2026 logo is a dark-ground composite, not a transparent mark, so
+          the header is dark and the artwork sits on its own ground. Every page
+          on this site already opens with a dark on-ink section, so a dark header
+          is seamless everywhere rather than a bar floating over light content.
+        */
         .hdr {
           position: sticky;
           top: 0;
           z-index: 50;
-          background: rgb(251 250 247 / 82%);
-          backdrop-filter: blur(12px);
+          /* Opaque, not translucent: at scroll 0 there is no content behind the
+             header, so a translucent bar samples the light body background and
+             washes out against the dark hero directly below it. */
+          background: var(--ink);
+          color: var(--text-invert);
           border-bottom: 1px solid transparent;
           transition:
             border-color 0.25s var(--ease),
@@ -131,8 +143,7 @@ export default function Header() {
         }
 
         .hdr.is-scrolled {
-          border-bottom-color: var(--paper-dim);
-          background: rgb(251 250 247 / 94%);
+          border-bottom-color: var(--ink-line);
         }
 
         .hdr-bar {
@@ -152,12 +163,26 @@ export default function Header() {
           margin-right: auto;
         }
 
-        /* The supplied logo is a circular badge on an opaque white square (no
-           alpha channel). Clipping to a circle drops the corners without
-           resampling or keying, so it sits on any background. Replace with a
-           transparent source if Jessica sends one. */
-        .brand :global(img) {
-          border-radius: 50%;
+        /*
+          The source is a 1123x1123 square whose lower quarter is the wordmark.
+          Rather than ship a second cropped file, the box is set to the wings'
+          aspect ratio and object-position trims the wordmark off — lossless,
+          and one asset to keep in sync.
+        */
+        .brand-mark {
+          display: block;
+          width: 76px;
+          height: 55px;
+          flex-shrink: 0;
+          overflow: hidden;
+          border-radius: 4px;
+        }
+
+        .brand-mark :global(img) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: center 26%;
         }
 
         .brand-text {
@@ -180,7 +205,7 @@ export default function Header() {
           line-height: 1.2;
           letter-spacing: 0.17em;
           text-transform: uppercase;
-          color: var(--text-dim);
+          color: var(--text-invert-dim);
         }
 
         .nav-desktop {
@@ -188,16 +213,16 @@ export default function Header() {
           gap: 1.75rem;
         }
 
-        .nav-desktop a {
+        .nav-desktop :global(a) {
           position: relative;
           font-size: 0.94rem;
           font-weight: 600;
           padding-block: 0.4rem;
-          color: var(--text-dim);
+          color: var(--text-invert-dim);
           transition: color 0.18s var(--ease);
         }
 
-        .nav-desktop a::after {
+        .nav-desktop :global(a)::after {
           content: '';
           position: absolute;
           left: 0;
@@ -210,13 +235,13 @@ export default function Header() {
           transition: transform 0.25s var(--ease);
         }
 
-        .nav-desktop a:hover,
-        .nav-desktop a.is-current {
-          color: var(--text);
+        .nav-desktop :global(a:hover),
+        .nav-desktop :global(a.is-current) {
+          color: var(--text-invert);
         }
 
-        .nav-desktop a:hover::after,
-        .nav-desktop a.is-current::after {
+        .nav-desktop :global(a:hover)::after,
+        .nav-desktop :global(a.is-current)::after {
           transform: scaleX(1);
         }
 
@@ -234,10 +259,10 @@ export default function Header() {
         }
 
         .hdr-phone:hover {
-          color: var(--blue-deep);
+          color: #8fb4ff;
         }
 
-        .hdr-quote {
+        .hdr-cta :global(.hdr-quote) {
           display: none;
           padding: 0.7rem 1.2rem;
           min-height: 44px;
@@ -251,7 +276,8 @@ export default function Header() {
           height: 46px;
           padding: 0;
           background: transparent;
-          border: 1px solid var(--paper-dim);
+          color: inherit;
+          border: 1px solid var(--ink-line);
           border-radius: var(--radius);
           cursor: pointer;
         }
@@ -265,7 +291,7 @@ export default function Header() {
         .burger-box i {
           display: block;
           height: 2px;
-          background: var(--text);
+          background: currentColor;
           transition: transform 0.25s var(--ease), opacity 0.2s var(--ease);
         }
 
@@ -282,8 +308,9 @@ export default function Header() {
         }
 
         .sheet {
-          border-top: 1px solid var(--paper-dim);
-          background: var(--paper);
+          border-top: 1px solid var(--ink-line);
+          background: var(--ink);
+          color: var(--text-invert);
           padding: 1.25rem 4vw 2rem;
         }
 
@@ -291,17 +318,17 @@ export default function Header() {
           display: grid;
         }
 
-        .sheet nav a {
+        .sheet nav :global(a) {
           padding: 0.95rem 0;
-          border-bottom: 1px solid var(--paper-warm);
+          border-bottom: 1px solid var(--ink-line);
           font-family: var(--font-display), system-ui, sans-serif;
           font-size: 1.45rem;
           font-weight: 700;
           letter-spacing: -0.02em;
         }
 
-        .sheet nav a.is-current {
-          color: var(--blue-deep);
+        .sheet nav :global(a.is-current) {
+          color: #8fb4ff;
         }
 
         .sheet-foot {
@@ -314,7 +341,7 @@ export default function Header() {
         .sheet-es {
           font-size: 0.85rem;
           font-weight: 600;
-          color: var(--text-dim);
+          color: var(--text-invert-dim);
         }
 
         .sr {
@@ -328,9 +355,11 @@ export default function Header() {
 
         @media (min-width: 900px) {
           .nav-desktop,
-          .hdr-phone,
-          .hdr-quote {
+          .hdr-phone {
             display: flex;
+          }
+          .hdr-cta :global(.hdr-quote) {
+            display: inline-flex;
           }
           .burger {
             display: none;

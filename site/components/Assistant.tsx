@@ -331,7 +331,7 @@ export default function Assistant() {
           border-bottom-right-radius: 2px;
         }
 
-        .bubble-link {
+        .row :global(.bubble-link) {
           font-family: var(--font-display), system-ui, sans-serif;
           font-size: 0.8rem;
           font-weight: 700;

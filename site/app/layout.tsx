@@ -81,8 +81,8 @@ const jsonLd = {
   url: business.siteUrl,
   telephone: '+1-612-205-5308',
   email: business.email,
-  image: `${business.siteUrl}/img/blue-wings-logo.png`,
-  logo: `${business.siteUrl}/img/blue-wings-logo.png`,
+  image: `${business.siteUrl}/img/blue-wings-logo.jpg`,
+  logo: `${business.siteUrl}/img/blue-wings-logo.jpg`,
   description:
     'Interior and exterior painting company serving the Twin Cities metro in Minnesota.',
   address: { '@type': 'PostalAddress', addressRegion: 'MN', addressCountry: 'US' },

@@ -69,9 +69,10 @@ writing before changing nameservers.
 
 - **The before/after is the argument.** Three verified pairs — the same surface
   photographed twice. Everything else on the site supports them.
-- **Palette is measured, not chosen.** `#5170FF` is sampled from the logo file
-  (37.2% of its opaque pixels); the cedar accent is sampled from the real
-  deck-after photo. Neither was picked by eye.
+- **Palette is measured, not chosen.** `#0062FB` is sampled from the wings in
+  the 2026 logo; the cedar accent is sampled from the real deck-after photo.
+  Neither was picked by eye. The brand blue carries white text at 5.07:1, so
+  the primary CTA uses it directly.
 - **No testimonials, no years-in-business, no licence number, no warranty, no
   prices.** None of those are confirmed. Empty beats invented — see the ledger.
 - **Reveal animations are progressive enhancement.** The CSS that hides
@@ -82,9 +83,24 @@ writing before changing nameservers.
   cell at `opacity: 0` shows as a solid block; and the list items are anchor
   targets, where the reveal's 22px translate pushed headings under the sticky
   header.
-- **The logo has no alpha channel** — it is a circular badge on an opaque white
-  square, so it is clipped to a circle in CSS. Drop that rule if Jessica sends a
-  transparent file.
+- **The header is dark because the logo is.** The 2026 logo is a rendered
+  composite on a `#1F1F1F` ground, not a transparent mark, so it cannot sit on a
+  light background without showing a dark rectangle. That ground is 1.19:1
+  against the site's ink, so on a dark header it is effectively invisible. Every
+  page already opens with a dark section, so the dark header is seamless
+  throughout rather than a bar floating over light content.
+- **The logo is one file, cropped by CSS.** `public/img/blue-wings-logo.jpg` is
+  the full 1123x1123 square. The header shows only the wings via a sized box
+  plus `object-position`, rather than shipping a second cropped file to keep in
+  sync. `app/icon.png` is the one derived asset (a 256px square crop above the
+  wordmark).
+- **styled-jsx does not scope elements rendered by `<Link>`.** It adds its
+  `jsx-*` class to DOM elements in the component's own JSX only, so a rule like
+  `.nav-desktop a` compiles to `a.jsx-xxx` and silently never matches. Any rule
+  targeting a Link (or an Image) must use `:global()` with a scoped ancestor —
+  e.g. `.nav-desktop :global(a)`. This had quietly killed the desktop nav
+  typography, the mobile menu typography, and the mobile hiding of the header's
+  "Free estimate" button.
 - **The live site's `<title>` says "Blue Wings Pinting MN".** That typo is what
   Google has indexed today. Fixed here.
 - **The assistant is retrieval, not a language model.** It scores the question

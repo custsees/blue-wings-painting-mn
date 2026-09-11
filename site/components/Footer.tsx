@@ -8,10 +8,11 @@ export default function Footer() {
       <div className="container ft-grid">
         <div className="ft-brand">
           <Image
-            src="/img/blue-wings-logo.png"
+            src="/img/blue-wings-logo.jpg"
             alt=""
-            width={64}
-            height={64}
+            width={1123}
+            height={1123}
+            sizes="150px"
           />
           <p className="ft-name">{business.nameFull}</p>
           <p className="ft-line">{business.tagline}</p>
