@@ -23,6 +23,9 @@ type Props = {
   /** Render the after image at high priority (hero only). */
   priority?: boolean;
   label?: string;
+  /** Corner tags, localized by the caller. */
+  beforeLabel?: string;
+  afterLabel?: string;
 };
 
 /**
@@ -47,6 +50,8 @@ export default function BeforeAfter({
   focus = 'center 50%',
   priority = false,
   label = 'Reveal the finished work',
+  beforeLabel = 'Before',
+  afterLabel = 'After',
 }: Props) {
   const [pct, setPct] = useState(50);
   const [dragging, setDragging] = useState(false);
@@ -123,10 +128,10 @@ export default function BeforeAfter({
         <span className="ba-sr">{before.alt}</span>
 
         <span className="ba-tag ba-tag-before" aria-hidden="true">
-          Before
+          {beforeLabel}
         </span>
         <span className="ba-tag ba-tag-after" aria-hidden="true">
-          After
+          {afterLabel}
         </span>
 
         <div className="ba-edge" aria-hidden="true">
@@ -238,8 +243,7 @@ export default function BeforeAfter({
 
         .ba-tag-after {
           right: 14px;
-          /* --blue-deep, not --blue: white on the raw logo blue is 4.11:1. */
-          background: var(--blue-deep);
+          background: var(--blue);
           opacity: calc((1 - var(--pct, 50%) / 100%) * 1.6);
         }
 

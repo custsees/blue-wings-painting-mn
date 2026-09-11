@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getDict, locales, type Locale } from '@/content/i18n';
 
 export const runtime = 'nodejs';
 
@@ -10,6 +11,7 @@ type QuoteBody = {
   service?: string;
   details?: string;
   company?: string;
+  locale?: string;
 };
 
 const MAX = { name: 120, phone: 40, email: 200, city: 120, service: 120, details: 4000 };
@@ -39,6 +41,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  // Answer validation errors in whatever language the visitor is reading.
+  const locale: Locale = locales.includes(body.locale as Locale)
+    ? (body.locale as Locale)
+    : 'en';
+
   const lead = {
     name: clean(body.name, MAX.name),
     phone: clean(body.phone, MAX.phone),
@@ -46,12 +53,13 @@ export async function POST(request: Request) {
     city: clean(body.city, MAX.city),
     service: clean(body.service, MAX.service),
     details: clean(body.details, MAX.details),
+    locale,
     submittedAt: new Date().toISOString(),
   };
 
   if (!lead.name || !lead.phone || !lead.city || !lead.service) {
     return NextResponse.json(
-      { error: 'Please fill in your name, phone, city and what needs painting.' },
+      { error: getDict(locale).form.validationError },
       { status: 400 },
     );
   }
@@ -64,9 +72,9 @@ export async function POST(request: Request) {
       const { neon } = await import('@neondatabase/serverless');
       const sql = neon(databaseUrl);
       await sql`
-        insert into quote_requests (name, phone, email, city, service, details, submitted_at)
+        insert into quote_requests (name, phone, email, city, service, details, locale, submitted_at)
         values (${lead.name}, ${lead.phone}, ${lead.email}, ${lead.city},
-                ${lead.service}, ${lead.details}, ${lead.submittedAt})
+                ${lead.service}, ${lead.details}, ${lead.locale}, ${lead.submittedAt})
       `;
     } catch (err) {
       // Never lose the lead to a database problem.

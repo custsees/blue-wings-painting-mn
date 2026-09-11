@@ -1,47 +1,100 @@
 @import 'tailwindcss';
 
 /*
+  THEMING
+  -------
+  Light is the default and is what every visitor gets on first load. Dark is
+  opt-in via the header toggle and remembered per browser. System preference is
+  deliberately NOT consulted: the client asked for light on load.
+
+  The theme works by redefining the SAME token names rather than adding new
+  ones, so every CSS module and styled-jsx block flips without being touched.
+
+  Two families of surface:
+    --paper / --paper-warm / --text …  the page itself
+    --band / --band-fg / …             the full-width feature sections
+                                       (hero, proof, header, footer — `.on-ink`)
+
+  --ink stays a genuinely dark constant in BOTH themes. It is used where dark
+  is the point regardless of theme: the skip link, the ghost-button hover, the
+  photo frame behind a loading image.
+
   Palette is measured, not chosen:
-  --blue        #0062FB  sampled from the wings in the 2026 logo
-  --logo-ground #1F1F1F  the logo artwork's own background
-  --cedar       #8A5730  sampled from the real deck-after photo
+    --blue        #0062FB  sampled from the wings in the 2026 logo
+    --logo-ground #1F1F1F  the logo artwork's own background
+    --cedar       #8A5730  sampled from the real deck-after photo
   See the private fact-and-proof ledger.
 
   #0062FB carries white text at 5.07:1, so the primary action uses the true
-  brand blue. The previous logo's periwinkle (#5170FF) only managed 4.11:1 and
-  had to be darkened for buttons; that workaround is gone.
+  brand blue. On light band surfaces the eyebrow steps down to --blue-deep,
+  which clears 4.5:1 where the brighter blue would land at ~4.4:1.
 */
+
 :root {
+  /* --- brand constants, identical in both themes --- */
   --blue: #0062fb;
   --blue-deep: #0049c4;
   --blue-dark: #002d7a;
-  --blue-wash: #e8f0ff;
-  /* The logo is a dark-ground composite, not a transparent mark. This is its
-     own background colour — 1.19:1 against --ink, so it sits on dark surfaces
-     essentially seamlessly. */
-  --logo-ground: #1f1f1f;
 
   --ink: #0a0b10;
   --ink-soft: #14161f;
-  --ink-line: #242736;
-
-  --paper: #fbfaf7;
-  --paper-warm: #f2eee6;
-  --paper-dim: #d9d4c9;
 
   --cedar: #8a5730;
   --cedar-bright: #c6803c;
 
-  --text: #14161f;
-  --text-dim: #55596b;
-  --text-invert: #f4f5fa;
-  --text-invert-dim: #a7abbe;
+  /* The logo is a dark-ground composite, not a transparent mark. */
+  --logo-ground: #1f1f1f;
 
   --container: min(92vw, 1240px);
   --wide: min(94vw, 1560px);
-
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --radius: 2px;
+
+  /* --- LIGHT THEME (default) --- */
+  --paper: #fbfaf7;
+  --paper-warm: #f2eee6;
+  --paper-dim: #d9d4c9;
+  --text: #14161f;
+  --text-dim: #55596b;
+
+  --band: #e8f0ff;
+  --band-fg: #14161f;
+  --band-fg-dim: #4a5468;
+  --band-line: #c6d7f7;
+  --band-eyebrow: #0049c4;
+  --band-glow: rgb(0 98 251 / 12%);
+
+  --blue-wash: #e8f0ff;
+  --input-bg: #ffffff;
+  --eyebrow: #0049c4;
+  --ink-line: var(--band-line);
+
+  /* Legacy aliases kept so existing modules need no edits. */
+  --text-invert: var(--band-fg);
+  --text-invert-dim: var(--band-fg-dim);
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --paper: #14161f;
+  --paper-warm: #0f1117;
+  --paper-dim: #2a2e3d;
+  --text: #f4f5fa;
+  --text-dim: #a7abbe;
+
+  --band: #0a0b10;
+  --band-fg: #f4f5fa;
+  --band-fg-dim: #a7abbe;
+  --band-line: #242736;
+  --band-eyebrow: #8fb4ff;
+  --band-glow: rgb(0 98 251 / 26%);
+
+  --blue-wash: #121c33;
+  --input-bg: #1a1d28;
+  --eyebrow: #8fb4ff;
+
+  color-scheme: dark;
 }
 
 *,
@@ -126,9 +179,8 @@ textarea {
   border-radius: 1px;
 }
 
-/* Dark sections invert the focus ring so it stays visible. */
 .on-ink :focus-visible {
-  outline-color: #8fa2ff;
+  outline-color: var(--band-eyebrow);
 }
 
 /* ---------- layout ---------- */
@@ -167,11 +219,11 @@ textarea {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--blue);
+  color: var(--eyebrow);
 }
 
 .on-ink .eyebrow {
-  color: #8fa2ff;
+  color: var(--band-eyebrow);
 }
 
 .lede {
@@ -181,12 +233,10 @@ textarea {
 }
 
 .on-ink .lede {
-  color: var(--text-invert-dim);
+  color: var(--band-fg-dim);
 }
 
-/* ---------- the wing rule ----------
-   The logo already carries the wings. Here the motif is reduced to a single
-   swept rule used as a section divider — present, not repeated as clip-art. */
+/* ---------- the wing rule ---------- */
 
 .wing-rule {
   display: block;
@@ -245,18 +295,17 @@ textarea {
 }
 
 .on-ink .btn-ghost {
-  --btn-fg: var(--text-invert);
+  --btn-fg: var(--band-fg);
 }
 
+/* On a light band the hover fill must be dark; on a dark band, light. */
 .on-ink .btn-ghost:hover {
-  --btn-bg: #fff;
-  --btn-fg: var(--ink);
-  border-color: #fff;
+  --btn-bg: var(--band-fg);
+  --btn-fg: var(--band);
+  border-color: var(--band-fg);
 }
 
-/* ---------- scroll reveal ----------
-   Progressive enhancement: without JS, .reveal elements are simply visible.
-   The script adds [data-reveal-armed] before observing. */
+/* ---------- scroll reveal ---------- */
 
 [data-reveal-armed] .reveal {
   opacity: 0;
@@ -278,11 +327,18 @@ textarea {
   }
 }
 
+@media print {
+  [data-reveal-armed] .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* ---------- misc ---------- */
 
 .on-ink {
-  background: var(--ink);
-  color: var(--text-invert);
+  background: var(--band);
+  color: var(--band-fg);
 }
 
 .rule {
@@ -292,7 +348,7 @@ textarea {
 }
 
 .on-ink .rule {
-  border-top-color: var(--ink-line);
+  border-top-color: var(--band-line);
 }
 
 .skip-link {
@@ -323,10 +379,13 @@ textarea {
   grid-template-columns: 1fr;
 }
 
+/* The logo is a dark-ground composite. On a dark band it disappears into the
+   background; on a light band it reads as a deliberate dark chip. */
 .ft-brand img {
   width: 150px;
   height: auto;
   margin-bottom: 1rem;
+  border-radius: 4px;
 }
 
 .ft-name {
@@ -338,7 +397,7 @@ textarea {
 
 .ft-line {
   margin-top: 0.35rem;
-  color: var(--text-invert-dim);
+  color: var(--band-fg-dim);
   font-size: 0.92rem;
   max-width: 30ch;
 }
@@ -347,11 +406,11 @@ textarea {
   margin-top: 0.85rem;
   display: inline-block;
   padding: 0.3rem 0.65rem;
-  border: 1px solid var(--ink-line);
+  border: 1px solid var(--band-line);
   border-radius: var(--radius);
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-invert-dim);
+  color: var(--band-fg-dim);
 }
 
 .ft-col {
@@ -365,46 +424,46 @@ textarea {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #8fa2ff;
+  color: var(--band-eyebrow);
   margin-bottom: 0.35rem;
 }
 
 .ft-col a {
-  color: var(--text-invert-dim);
+  color: var(--band-fg-dim);
   font-size: 0.92rem;
   width: fit-content;
   transition: color 0.18s var(--ease);
 }
 
 .ft-col a:hover {
-  color: #fff;
+  color: var(--band-fg);
 }
 
 .ft-strong {
   font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 700;
   font-size: 1.15rem !important;
-  color: #fff !important;
+  color: var(--band-fg) !important;
 }
 
 .ft-area {
   margin-top: 0.6rem;
   font-size: 0.85rem;
   line-height: 1.5;
-  color: var(--text-invert-dim);
+  color: var(--band-fg-dim);
   max-width: 32ch;
 }
 
 .ft-base {
   margin-top: clamp(2.5rem, 5vw, 4rem);
   padding-top: 1.5rem;
-  border-top: 1px solid var(--ink-line);
+  border-top: 1px solid var(--band-line);
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.5rem;
   justify-content: space-between;
   font-size: 0.82rem;
-  color: var(--text-invert-dim);
+  color: var(--band-fg-dim);
 }
 
 @media (min-width: 700px) {
@@ -423,19 +482,4 @@ textarea {
   .ft-brand {
     grid-column: auto;
   }
-}
-
-/* Reveal must never hide content in print or in tools that rasterise the full
-   page without scrolling it. */
-@media print {
-  [data-reveal-armed] .reveal {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}
-
-/* The logo is a dark-ground composite (#1F1F1F), which is all but identical to
-   --ink, so it needs no cutout or tile on the footer — it simply sits there. */
-.ft-brand img {
-  border-radius: 4px;
 }

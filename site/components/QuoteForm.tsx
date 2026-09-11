@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { business, services } from '@/content/site';
+import { getDict, type Locale } from '@/content/i18n';
+import { business, serviceSlugs } from '@/content/site';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
-export default function QuoteForm() {
+export default function QuoteForm({ locale }: { locale: Locale }) {
+  const t = getDict(locale);
+  const f = t.form;
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const doneRef = useRef<HTMLDivElement>(null);
@@ -41,36 +44,35 @@ export default function QuoteForm() {
       const res = await fetch('/api/quote', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, locale }),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(body?.error ?? 'Something went wrong.');
+        throw new Error(body?.error ?? f.genericError);
       }
       setStatus('sent');
       form.reset();
     } catch (err) {
       setStatus('error');
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
+      setError(err instanceof Error ? err.message : f.genericError);
     }
   }
 
   if (status === 'sent') {
     return (
       <div className="qf-done" role="status" tabIndex={-1} ref={doneRef}>
-        <h3 className="h3">Thanks — we have your request.</h3>
+        <h3 className="h3">{f.sentTitle}</h3>
         <p>
-          We&apos;ll be in touch about your estimate. If it&apos;s urgent, call{' '}
-          <a href={business.phoneHref}>{business.phone}</a>.
+          {f.sentBody} <a href={business.phoneHref}>{business.phone}</a>.
         </p>
         <button
           type="button"
           className="btn btn-ghost"
           onClick={() => setStatus('idle')}
         >
-          Send another
+          {f.sendAnother}
         </button>
         <style jsx>{`
           .qf-done {
@@ -84,7 +86,7 @@ export default function QuoteForm() {
           }
           .qf-done a {
             font-weight: 700;
-            color: var(--blue-deep);
+            color: var(--eyebrow);
             text-decoration: underline;
           }
         `}</style>
@@ -96,88 +98,85 @@ export default function QuoteForm() {
     <form className="qf" onSubmit={onSubmit} noValidate={false}>
       <div className="qf-row">
         <label className="qf-field">
-          <span>Name</span>
+          <span>{f.name}</span>
           <input name="name" type="text" required autoComplete="name" />
         </label>
         <label className="qf-field">
-          <span>Phone</span>
+          <span>{f.phone}</span>
           <input name="phone" type="tel" required autoComplete="tel" />
         </label>
       </div>
 
       <label className="qf-field">
         <span>
-          Email <em>optional</em>
+          {f.email} <em>{f.optional}</em>
         </span>
         <input name="email" type="email" autoComplete="email" />
       </label>
 
       <div className="qf-row">
         <label className="qf-field">
-          <span>City</span>
+          <span>{f.city}</span>
           <input
             name="city"
             type="text"
             required
             autoComplete="address-level2"
-            placeholder="Brooklyn Center"
+            placeholder={f.cityPlaceholder}
           />
         </label>
         <label className="qf-field">
-          <span>What needs painting?</span>
+          <span>{f.service}</span>
           <select name="service" required defaultValue="">
             <option value="" disabled>
-              Choose one
+              {f.chooseOne}
             </option>
-            {services.map((s) => (
-              <option key={s.slug} value={s.name}>
-                {s.name}
+            {serviceSlugs.map((slug) => (
+              <option key={slug} value={t.services.items[slug].name}>
+                {t.services.items[slug].name}
               </option>
             ))}
-            <option value="Something else">Something else</option>
+            <option value={f.somethingElse}>{f.somethingElse}</option>
           </select>
         </label>
       </div>
 
       <label className="qf-field">
         <span>
-          Tell us about the job <em>optional</em>
+          {f.details} <em>{f.optional}</em>
         </span>
         <textarea
           name="details"
           rows={4}
-          placeholder="Rooms, square footage, current condition, when you'd like it done."
+          placeholder={f.detailsPlaceholder}
         />
       </label>
 
       {/* Honeypot — visually hidden, not display:none, so bots still see it. */}
       <div className="qf-hp" aria-hidden="true">
         <label>
-          Company
+          {f.company}
           <input name="company" type="text" tabIndex={-1} autoComplete="off" />
         </label>
       </div>
 
       <div className="qf-actions">
         <button className="btn" type="submit" disabled={status === 'sending'}>
-          {status === 'sending' ? 'Sending…' : 'Request my free estimate'}
+          {status === 'sending' ? f.sending : f.submit}
         </button>
         <a className="btn btn-ghost" href={business.phoneHref}>
-          Or call {business.phone}
+          {f.orCall(business.phone)}
         </a>
       </div>
 
       {status === 'error' && (
         <p className="qf-error" role="alert">
-          {error} You can also call{' '}
-          <a href={business.phoneHref}>{business.phone}</a> or email{' '}
-          <a href={business.emailHref}>{business.email}</a>.
+          {error}
+          {f.errorSuffix(business.phone, business.email)}
         </p>
       )}
 
-      <p className="qf-note">
-        Free estimates. {business.spanish}.
-      </p>
+      <p className="qf-note">{f.note}</p>
 
       <style jsx>{`
         .qf {
@@ -217,7 +216,7 @@ export default function QuoteForm() {
           width: 100%;
           padding: 0.85rem 0.9rem;
           min-height: 50px;
-          background: #fff;
+          background: var(--input-bg);
           border: 1.5px solid var(--paper-dim);
           border-radius: var(--radius);
           transition: border-color 0.18s var(--ease);
@@ -231,7 +230,7 @@ export default function QuoteForm() {
         .qf-field input:hover,
         .qf-field select:hover,
         .qf-field textarea:hover {
-          border-color: #b4aea1;
+          border-color: var(--text-dim);
         }
 
         .qf-field input:focus,
@@ -264,7 +263,7 @@ export default function QuoteForm() {
         .qf-error {
           padding: 0.9rem 1rem;
           border-left: 3px solid #b3261e;
-          background: #fdf0ef;
+          background: color-mix(in srgb, #b3261e 8%, var(--paper));
           font-size: 0.92rem;
         }
 

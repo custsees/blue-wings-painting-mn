@@ -3,12 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
-import {
-  defaultSuggestions,
-  greeting,
-  suggestionsByPath,
-} from '@/content/assistant';
-import { business } from '@/content/site';
+import { getDict, type Locale } from '@/content/i18n';
+import { business, navKeys, pathFor } from '@/content/site';
 import { match } from './assistant-match';
 
 type Message = {
@@ -20,8 +16,10 @@ type Message = {
 
 let nextId = 0;
 
-export default function Assistant() {
+export default function Assistant({ locale }: { locale: Locale }) {
   const pathname = usePathname();
+  const t = getDict(locale);
+  const a = t.assistant;
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState('');
@@ -31,7 +29,9 @@ export default function Assistant() {
   const inputRef = useRef<HTMLInputElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
-  const suggestions = suggestionsByPath[pathname] ?? defaultSuggestions;
+  // Starter questions follow the page the visitor is actually on.
+  const navKey = navKeys.find((k) => pathFor(k, locale) === pathname) ?? 'home';
+  const suggestions = a.suggestions[navKey];
 
   useEffect(() => {
     if (!open) return;
@@ -56,7 +56,7 @@ export default function Assistant() {
   function ask(question: string) {
     const text = question.trim();
     if (!text) return;
-    const result = match(text);
+    const result = match(text, locale);
     setMessages((prev) => [
       ...prev,
       { id: nextId++, role: 'user', text },
@@ -97,7 +97,7 @@ export default function Assistant() {
           )}
         </span>
         <span className="launcher-label">
-          {open ? 'Close' : 'Ask about our work'}
+          {open ? a.close : a.launcher}
         </span>
       </button>
 
@@ -105,15 +105,13 @@ export default function Assistant() {
         id={panelId}
         className={`panel${open ? ' is-open' : ''}`}
         role="dialog"
-        aria-label="Ask about Blue Wings Painting"
+        aria-label={a.panelTitle}
         hidden={!open}
       >
         <header className="panel-head">
           <div>
-            <p className="panel-title">Ask about our work</p>
-            <p className="panel-sub">
-              Answers come from this site only — not an AI guess.
-            </p>
+            <p className="panel-title">{a.panelTitle}</p>
+            <p className="panel-sub">{a.panelSub}</p>
           </div>
           <button
             type="button"
@@ -123,7 +121,7 @@ export default function Assistant() {
               launcherRef.current?.focus();
             }}
           >
-            <span className="sr">Close</span>
+            <span className="sr">{a.close}</span>
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path
                 d="m5 5 10 10M15 5 5 15"
@@ -136,7 +134,7 @@ export default function Assistant() {
         </header>
 
         <div className="log" ref={logRef} aria-live="polite">
-          <p className="bubble bot">{greeting}</p>
+          <p className="bubble bot">{a.greeting}</p>
 
           {messages.map((m) => (
             <div key={m.id} className={`row ${m.role}`}>
@@ -170,7 +168,7 @@ export default function Assistant() {
           }}
         >
           <label className="sr" htmlFor={`${panelId}-input`}>
-            Ask a question about Blue Wings Painting
+            {a.inputLabel}
           </label>
           <input
             id={`${panelId}-input`}
@@ -178,11 +176,11 @@ export default function Assistant() {
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Do you paint cabinets?"
+            placeholder={a.placeholder}
             autoComplete="off"
           />
           <button type="submit" className="send" disabled={!draft.trim()}>
-            <span className="sr">Send</span>
+            <span className="sr">{a.send}</span>
             <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path
                 d="M3 10h12M10 5l5 5-5 5"
@@ -196,7 +194,7 @@ export default function Assistant() {
         </form>
 
         <p className="panel-foot">
-          Rather talk to a person?{' '}
+          {a.ratherTalk}{' '}
           <a href={business.phoneHref}>{business.phone}</a>
         </p>
       </div>
@@ -212,9 +210,9 @@ export default function Assistant() {
           gap: 0.5rem;
           padding: 0.85rem 1.15rem;
           min-height: 50px;
-          background: var(--blue-deep);
+          background: var(--blue);
           color: #fff;
-          border: 2px solid var(--blue-deep);
+          border: 2px solid var(--blue);
           border-radius: 999px;
           font-family: var(--font-display), system-ui, sans-serif;
           font-weight: 700;
@@ -227,8 +225,8 @@ export default function Assistant() {
         }
 
         .launcher:hover {
-          background: var(--blue-dark);
-          border-color: var(--blue-dark);
+          background: var(--blue-deep);
+          border-color: var(--blue-deep);
           transform: translateY(-2px);
         }
 
@@ -258,8 +256,9 @@ export default function Assistant() {
           align-items: flex-start;
           gap: 1rem;
           padding: 1rem 1.1rem;
-          background: var(--ink);
-          color: var(--text-invert);
+          background: var(--band);
+          color: var(--band-fg);
+          border-bottom: 1px solid var(--band-line);
         }
 
         .panel-title {
@@ -271,7 +270,7 @@ export default function Assistant() {
         .panel-sub {
           margin-top: 0.2rem;
           font-size: 0.76rem;
-          color: var(--text-invert-dim);
+          color: var(--band-fg-dim);
         }
 
         .panel-close {
@@ -283,13 +282,13 @@ export default function Assistant() {
           flex-shrink: 0;
           background: transparent;
           color: inherit;
-          border: 1px solid var(--ink-line);
+          border: 1px solid var(--band-line);
           border-radius: 4px;
           cursor: pointer;
         }
 
         .panel-close:hover {
-          background: var(--ink-soft);
+          border-color: var(--band-fg-dim);
         }
 
         .log {
@@ -326,7 +325,7 @@ export default function Assistant() {
         }
 
         .bubble.user {
-          background: var(--blue-deep);
+          background: var(--blue);
           color: #fff;
           border-bottom-right-radius: 2px;
         }
@@ -335,7 +334,7 @@ export default function Assistant() {
           font-family: var(--font-display), system-ui, sans-serif;
           font-size: 0.8rem;
           font-weight: 700;
-          color: var(--blue-deep);
+          color: var(--eyebrow);
           border-bottom: 2px solid currentColor;
           padding-bottom: 1px;
         }
@@ -360,7 +359,7 @@ export default function Assistant() {
         }
 
         .chip:hover {
-          border-color: var(--blue-deep);
+          border-color: var(--blue);
           background: var(--blue-wash);
         }
 
@@ -376,7 +375,7 @@ export default function Assistant() {
           min-width: 0;
           padding: 0.6rem 0.7rem;
           min-height: 42px;
-          background: #fff;
+          background: var(--input-bg);
           border: 1.5px solid var(--paper-dim);
           border-radius: 4px;
           font-size: 0.9rem;
@@ -392,7 +391,7 @@ export default function Assistant() {
           width: 42px;
           height: 42px;
           flex-shrink: 0;
-          background: var(--blue-deep);
+          background: var(--blue);
           color: #fff;
           border: 0;
           border-radius: 4px;
@@ -412,7 +411,7 @@ export default function Assistant() {
 
         .panel-foot a {
           font-weight: 700;
-          color: var(--blue-deep);
+          color: var(--eyebrow);
           text-decoration: underline;
         }
 

@@ -1,13 +1,24 @@
 import type { MetadataRoute } from 'next';
 import { business } from '@/content/site';
 
+/**
+ * Both languages, with hreflang alternates so Google serves the right one.
+ * English URLs carry no locale prefix (see the rewrites in next.config.ts).
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const routes = ['', '/services', '/gallery', '/about', '/contact'];
-  return routes.map((route) => ({
-    url: `${business.siteUrl}${route}`,
+  const paths = ['', '/services', '/gallery', '/about', '/contact'];
+
+  return paths.map((path) => ({
+    url: `${business.siteUrl}${path || '/'}`,
     lastModified: now,
-    changeFrequency: route === '' ? 'weekly' : 'monthly',
-    priority: route === '' ? 1 : 0.7,
+    changeFrequency: path === '' ? 'weekly' : 'monthly',
+    priority: path === '' ? 1 : 0.7,
+    alternates: {
+      languages: {
+        'en-US': `${business.siteUrl}${path || '/'}`,
+        'es-US': `${business.siteUrl}/es${path}`,
+      },
+    },
   }));
 }

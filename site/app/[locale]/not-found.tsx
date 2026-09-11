@@ -1,15 +1,19 @@
 import Link from 'next/link';
-import { business } from '@/content/site';
+import { getDict } from '@/content/i18n';
+import { business, pathFor } from '@/content/site';
 
+/* Next renders not-found outside the locale params, so this falls back to
+   English. The header and footer around it still come from the layout. */
 export default function NotFound() {
+  const t = getDict('en');
   return (
     <section className="section container" style={{ textAlign: 'center' }}>
       <p className="eyebrow">404</p>
       <h1 className="h2" style={{ marginTop: '0.75rem' }}>
-        That page isn&apos;t here.
+        {t.notFound.title}
       </h1>
       <p className="lede" style={{ marginTop: '1rem' }}>
-        The work is, though.
+        {t.notFound.lede}
       </p>
       <div
         style={{
@@ -20,11 +24,11 @@ export default function NotFound() {
           justifyContent: 'center',
         }}
       >
-        <Link className="btn" href="/gallery">
-          See our work
+        <Link className="btn" href={pathFor('gallery', 'en')}>
+          {t.common.seeOurWork}
         </Link>
         <a className="btn btn-ghost" href={business.phoneHref}>
-          Call {business.phone}
+          {t.common.callPhone(business.phone)}
         </a>
       </div>
     </section>

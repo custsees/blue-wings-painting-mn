@@ -4,11 +4,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { business, nav } from '@/content/site';
+import { getDict, type Locale } from '@/content/i18n';
+import { business, navKeys, pathFor } from '@/content/site';
+import { ThemeToggle } from './Theme';
 
-export default function Header() {
+export default function Header({ locale }: { locale: Locale }) {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const t = getDict(locale);
 
   /*
     The mobile sheet stores the route it was opened on rather than a bare
@@ -29,8 +32,6 @@ export default function Header() {
 
   useEffect(() => {
     if (!open) return;
-    // setOpenedOn (the state setter) rather than the setOpen wrapper, which is
-    // recreated every render and would have to be a dependency.
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpenedOn(null);
     };
@@ -42,10 +43,24 @@ export default function Header() {
     };
   }, [open]);
 
+  const other: Locale = locale === 'en' ? 'es' : 'en';
+  /* Same page, other language. Falls back to that language's home. */
+  const otherHref =
+    navKeys.find((k) => pathFor(k, locale) === pathname) !== undefined
+      ? pathFor(
+          navKeys.find((k) => pathFor(k, locale) === pathname)!,
+          other,
+        )
+      : pathFor('home', other);
+
   return (
     <header className={`hdr${scrolled ? ' is-scrolled' : ''}`}>
       <div className="wide hdr-bar">
-        <Link href="/" className="brand" aria-label={`${business.nameFull} — home`}>
+        <Link
+          href={pathFor('home', locale)}
+          className="brand"
+          aria-label={`${business.nameFull} — ${t.nav.home}`}
+        >
           <span className="brand-mark" aria-hidden="true">
             <Image
               src="/img/blue-wings-logo.jpg"
@@ -63,25 +78,37 @@ export default function Header() {
         </Link>
 
         <nav className="nav-desktop" aria-label="Primary">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={pathname === item.href ? 'is-current' : undefined}
-              aria-current={pathname === item.href ? 'page' : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navKeys.map((key) => {
+            const href = pathFor(key, locale);
+            const current = pathname === href;
+            return (
+              <Link
+                key={key}
+                href={href}
+                className={current ? 'is-current' : undefined}
+                aria-current={current ? 'page' : undefined}
+              >
+                {t.nav[key]}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="hdr-cta">
           <a className="hdr-phone" href={business.phoneHref}>
             {business.phone}
           </a>
-          <Link className="btn hdr-quote" href="/contact">
-            Free estimate
+
+          <Link className="lang" href={otherHref} hrefLang={other} aria-label={t.switchTo.aria}>
+            {t.switchTo.label}
           </Link>
+
+          <ThemeToggle toLight={t.common.themeToLight} toDark={t.common.themeToDark} />
+
+          <Link className="btn hdr-quote" href={pathFor('contact', locale)}>
+            {t.common.freeEstimate}
+          </Link>
+
           <button
             type="button"
             className="burger"
@@ -89,7 +116,7 @@ export default function Header() {
             aria-controls="mobile-nav"
             onClick={() => setOpen(!open)}
           >
-            <span className="sr">{open ? 'Close menu' : 'Open menu'}</span>
+            <span className="sr">{open ? t.common.closeMenu : t.common.openMenu}</span>
             <span className={`burger-box${open ? ' is-open' : ''}`} aria-hidden="true">
               <i />
               <i />
@@ -101,20 +128,24 @@ export default function Header() {
 
       <div id="mobile-nav" className={`sheet${open ? ' is-open' : ''}`} hidden={!open}>
         <nav aria-label="Mobile">
-          {nav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={pathname === item.href ? 'is-current' : undefined}
-              aria-current={pathname === item.href ? 'page' : undefined}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navKeys.map((key) => {
+            const href = pathFor(key, locale);
+            const current = pathname === href;
+            return (
+              <Link
+                key={key}
+                href={href}
+                className={current ? 'is-current' : undefined}
+                aria-current={current ? 'page' : undefined}
+              >
+                {t.nav[key]}
+              </Link>
+            );
+          })}
         </nav>
         <div className="sheet-foot">
           <a className="btn" href={business.phoneHref}>
-            Call {business.phone}
+            {t.common.callPhone(business.phone)}
           </a>
           <p className="sheet-es">{business.spanish}</p>
         </div>
@@ -122,28 +153,23 @@ export default function Header() {
 
       <style jsx>{`
         /*
-          The 2026 logo is a dark-ground composite, not a transparent mark, so
-          the header is dark and the artwork sits on its own ground. Every page
-          on this site already opens with a dark on-ink section, so a dark header
-          is seamless everywhere rather than a bar floating over light content.
+          The header uses the band tokens, so it is dark in the dark theme and
+          light in the light theme. It is opaque rather than translucent: at
+          scroll 0 there is no content behind it, so a translucent bar samples
+          the page background and washes out against the section below.
         */
         .hdr {
           position: sticky;
           top: 0;
           z-index: 50;
-          /* Opaque, not translucent: at scroll 0 there is no content behind the
-             header, so a translucent bar samples the light body background and
-             washes out against the dark hero directly below it. */
-          background: var(--ink);
-          color: var(--text-invert);
+          background: var(--band);
+          color: var(--band-fg);
           border-bottom: 1px solid transparent;
-          transition:
-            border-color 0.25s var(--ease),
-            background-color 0.25s var(--ease);
+          transition: border-color 0.25s var(--ease);
         }
 
         .hdr.is-scrolled {
-          border-bottom-color: var(--ink-line);
+          border-bottom-color: var(--band-line);
         }
 
         .hdr-bar {
@@ -151,8 +177,7 @@ export default function Header() {
           align-items: center;
           gap: 1.25rem;
           min-height: 82px;
-          /* Without this the brand's second line ("PAINTING MN") gets clipped
-             by the header's bottom edge. */
+          /* Without this the brand's second line gets clipped by the edge. */
           padding-block: 0.7rem;
         }
 
@@ -168,6 +193,9 @@ export default function Header() {
           Rather than ship a second cropped file, the box is set to the wings'
           aspect ratio and object-position trims the wordmark off — lossless,
           and one asset to keep in sync.
+
+          The artwork has a dark ground, so it is given that ground explicitly:
+          invisible on the dark theme, a deliberate dark chip on the light one.
         */
         .brand-mark {
           display: block;
@@ -176,6 +204,7 @@ export default function Header() {
           flex-shrink: 0;
           overflow: hidden;
           border-radius: 4px;
+          background: var(--logo-ground);
         }
 
         .brand-mark :global(img) {
@@ -205,7 +234,7 @@ export default function Header() {
           line-height: 1.2;
           letter-spacing: 0.17em;
           text-transform: uppercase;
-          color: var(--text-invert-dim);
+          color: var(--band-fg-dim);
         }
 
         .nav-desktop {
@@ -213,12 +242,16 @@ export default function Header() {
           gap: 1.75rem;
         }
 
+        /* styled-jsx only scopes DOM elements in this component's own JSX.
+           <Link> renders the <a> itself, so '.nav-desktop a' would compile to
+           'a.jsx-xxx' and never match. :global() drops that requirement while
+           the ancestor keeps the rule confined here. */
         .nav-desktop :global(a) {
           position: relative;
           font-size: 0.94rem;
           font-weight: 600;
           padding-block: 0.4rem;
-          color: var(--text-invert-dim);
+          color: var(--band-fg-dim);
           transition: color 0.18s var(--ease);
         }
 
@@ -237,7 +270,7 @@ export default function Header() {
 
         .nav-desktop :global(a:hover),
         .nav-desktop :global(a.is-current) {
-          color: var(--text-invert);
+          color: var(--band-fg);
         }
 
         .nav-desktop :global(a:hover)::after,
@@ -248,7 +281,7 @@ export default function Header() {
         .hdr-cta {
           display: flex;
           align-items: center;
-          gap: 0.75rem;
+          gap: 0.6rem;
         }
 
         .hdr-phone {
@@ -256,10 +289,33 @@ export default function Header() {
           font-family: var(--font-display), system-ui, sans-serif;
           font-weight: 700;
           font-size: 0.95rem;
+          margin-right: 0.3rem;
         }
 
         .hdr-phone:hover {
-          color: #8fb4ff;
+          color: var(--band-eyebrow);
+        }
+
+        .hdr-cta :global(.lang) {
+          display: grid;
+          place-items: center;
+          min-width: 42px;
+          height: 42px;
+          padding-inline: 0.5rem;
+          border: 1px solid var(--band-line);
+          border-radius: var(--radius);
+          font-family: var(--font-display), system-ui, sans-serif;
+          font-weight: 700;
+          font-size: 0.78rem;
+          letter-spacing: 0.06em;
+          transition:
+            border-color 0.18s var(--ease),
+            color 0.18s var(--ease);
+        }
+
+        .hdr-cta :global(.lang:hover) {
+          border-color: var(--band-fg-dim);
+          color: var(--band-eyebrow);
         }
 
         .hdr-cta :global(.hdr-quote) {
@@ -272,12 +328,12 @@ export default function Header() {
         .burger {
           display: grid;
           place-items: center;
-          width: 46px;
-          height: 46px;
+          width: 42px;
+          height: 42px;
           padding: 0;
           background: transparent;
           color: inherit;
-          border: 1px solid var(--ink-line);
+          border: 1px solid var(--band-line);
           border-radius: var(--radius);
           cursor: pointer;
         }
@@ -308,9 +364,9 @@ export default function Header() {
         }
 
         .sheet {
-          border-top: 1px solid var(--ink-line);
-          background: var(--ink);
-          color: var(--text-invert);
+          border-top: 1px solid var(--band-line);
+          background: var(--band);
+          color: var(--band-fg);
           padding: 1.25rem 4vw 2rem;
         }
 
@@ -320,7 +376,7 @@ export default function Header() {
 
         .sheet nav :global(a) {
           padding: 0.95rem 0;
-          border-bottom: 1px solid var(--ink-line);
+          border-bottom: 1px solid var(--band-line);
           font-family: var(--font-display), system-ui, sans-serif;
           font-size: 1.45rem;
           font-weight: 700;
@@ -328,7 +384,7 @@ export default function Header() {
         }
 
         .sheet nav :global(a.is-current) {
-          color: #8fb4ff;
+          color: var(--band-eyebrow);
         }
 
         .sheet-foot {
@@ -341,7 +397,7 @@ export default function Header() {
         .sheet-es {
           font-size: 0.85rem;
           font-weight: 600;
-          color: var(--text-invert-dim);
+          color: var(--band-fg-dim);
         }
 
         .sr {
@@ -353,7 +409,7 @@ export default function Header() {
           white-space: nowrap;
         }
 
-        @media (min-width: 900px) {
+        @media (min-width: 980px) {
           .nav-desktop,
           .hdr-phone {
             display: flex;

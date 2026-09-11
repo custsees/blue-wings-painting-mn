@@ -3,37 +3,56 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BeforeAfter from '@/components/BeforeAfter';
 import WingRule from '@/components/WingRule';
+import { getDict, locales, type Locale } from '@/content/i18n';
 import {
   business,
-  process,
-  projects,
-  serviceArea,
-  valueProps,
+  namedCities,
+  pathFor,
+  projectImages,
+  projectSlugs,
 } from '@/content/site';
+import { alternatesFor } from '../layout';
 import styles from './about.module.css';
 
-export const metadata: Metadata = {
-  title: 'About',
-  description:
-    'Blue Wings Painting MN is an interior and exterior painting company serving the Twin Cities metro. Free estimates. Hablamos Español.',
-  alternates: { canonical: '/about' },
-};
+function toLocale(raw: string): Locale {
+  return ((locales as readonly string[]).includes(raw) ? raw : 'en') as Locale;
+}
 
-const pair = projects[1];
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const t = getDict(toLocale((await params).locale));
+  return {
+    title: t.about.meta.title,
+    description: t.about.meta.description,
+    alternates: alternatesFor('/about'),
+  };
+}
 
-export default function AboutPage() {
+export default async function AboutPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const locale = toLocale((await params).locale);
+  const t = getDict(locale);
+
+  const slug = projectSlugs[1];
+  const pair = t.gallery.items[slug];
+  const img = projectImages[slug];
+
   return (
     <>
       <section className={`on-ink ${styles.head}`}>
         <div className="container">
-          <p className="eyebrow">About</p>
+          <p className="eyebrow">{t.about.eyebrow}</p>
           <h1 className="display" style={{ maxWidth: '15ch' }}>
-            A painting company, not a marketing company.
+            {t.about.h1}
           </h1>
           <p className="lede" style={{ marginTop: '1.5rem', maxWidth: '54ch' }}>
-            Blue Wings Painting MN does interior and exterior work across the{' '}
-            {serviceArea.headline}. The photographs on this site are our jobs —
-            not stock, not someone else&apos;s portfolio.
+            {t.about.lede}
           </p>
         </div>
       </section>
@@ -55,40 +74,33 @@ export default function AboutPage() {
         <div className={`container ${styles.split}`}>
           <div className={styles.splitText}>
             <h2 className="h2" style={{ maxWidth: '16ch' }}>
-              What we&apos;d rather be judged on
+              {t.about.judgedTitle}
             </h2>
-            <p className={styles.para}>
-              Painting is a trade where the marketing all sounds the same. Every
-              company says quality, reliability and care. The difference only
-              shows up on the wall.
-            </p>
-            <p className={styles.para}>
-              So the argument we&apos;d rather make is the one on the right: a
-              garage whose factory finish had failed down to bare wood, and the
-              same garage after. Drag it. That&apos;s the standard.
-            </p>
+            <p className={styles.para}>{t.about.judgedP1}</p>
+            <p className={styles.para}>{t.about.judgedP2}</p>
             <div className={styles.actions}>
-              <Link className="btn" href="/gallery">
-                See all our work
+              <Link className="btn" href={pathFor('gallery', locale)}>
+                {t.common.seeOurWork}
               </Link>
             </div>
           </div>
           <div className={styles.splitMedia}>
             <BeforeAfter
-              before={pair.before}
-              after={pair.after}
-              focus={pair.focus}
-              label="Drag to compare the garage doors before and after"
+              before={{ ...img.before, alt: pair.beforeAlt }}
+              after={{ ...img.after, alt: pair.afterAlt }}
+              label={t.common.dragToCompare(pair.title.toLowerCase())}
+              beforeLabel={t.common.before}
+              afterLabel={t.common.after}
             />
           </div>
         </div>
       </section>
 
-      <section className={`${styles.values}`}>
+      <section className={styles.values}>
         <div className="container">
-          <p className="eyebrow">How we work</p>
+          <p className="eyebrow">{t.about.valuesEyebrow}</p>
           <div className={styles.valuesGrid}>
-            {valueProps.map((v, i) => (
+            {t.home.valueProps.map((v, i) => (
               <div key={v.title} className="reveal" data-reveal-delay={i * 90}>
                 <h2 className="h3">{v.title}</h2>
                 <p>{v.body}</p>
@@ -100,12 +112,12 @@ export default function AboutPage() {
 
       <section className="section">
         <div className="container">
-          <p className="eyebrow">Every job, same order</p>
+          <p className="eyebrow">{t.about.processEyebrow}</p>
           <h2 className="h2" style={{ maxWidth: '18ch' }}>
-            The parts you don&apos;t see are the parts that last
+            {t.about.processTitle}
           </h2>
           <ol className={styles.steps}>
-            {process.map((step) => (
+            {t.process.map((step) => (
               <li key={step.step} className="reveal">
                 <span className={styles.stepNum}>{step.step}</span>
                 <div>
@@ -121,19 +133,19 @@ export default function AboutPage() {
       <section className={`on-ink section ${styles.area}`}>
         <div className={`container ${styles.areaInner}`}>
           <div>
-            <p className="eyebrow">Service area</p>
-            <h2 className="h2">The {serviceArea.headline}</h2>
+            <p className="eyebrow">{t.about.areaEyebrow}</p>
+            <h2 className="h2">{t.home.areaTitle}</h2>
             <p className="lede" style={{ marginTop: '1rem' }}>
-              Including {serviceArea.namedCities.join(', ')} {serviceArea.note}.
+              {t.common.areaIncluding(namedCities.join(', '))}.
             </p>
             <p className={styles.esBlock}>
-              <strong>{business.spanish}</strong> — llámanos al{' '}
-              <a href={business.phoneHref}>{business.phone}</a> para un
-              presupuesto gratis.
+              <strong>{business.spanish}</strong> —{' '}
+              <a href={business.phoneHref}>{business.phone}</a>,{' '}
+              {t.about.spanishNote}
             </p>
             <div className={styles.actions}>
-              <Link className="btn" href="/contact">
-                Get a free estimate
+              <Link className="btn" href={pathFor('contact', locale)}>
+                {t.common.getFreeEstimate}
               </Link>
               <a className="btn btn-ghost" href={business.phoneHref}>
                 {business.phone}
@@ -143,7 +155,7 @@ export default function AboutPage() {
           <div className={styles.areaMedia}>
             <Image
               src="/img/exterior-addition-lattice.jpg"
-              alt="A painted addition in cream board-and-batten with black window trim and white lattice skirting."
+              alt={t.gallery.finished[2].alt}
               width={736}
               height={1005}
               sizes="(max-width: 900px) 92vw, 480px"

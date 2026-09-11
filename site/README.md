@@ -24,15 +24,43 @@ npm run build && npm run start
 
 | Path | What |
 |---|---|
-| `content/site.ts` | **Single source of truth.** Business facts, services, before/after pairs, process. Change copy here, not in pages. |
+| `content/i18n.ts` | **All visitor-facing copy, both languages.** Change wording here, not in pages. |
+| `content/site.ts` | Locale-invariant facts and assets: phone, email, image paths, crop positions, slugs. One place to correct a fact. |
 | `app/globals.css` | Design tokens and shared classes. Palette is measured from client assets — see the comment at the top. |
 | `components/BeforeAfter.tsx` | The signature drag-to-reveal ("the wet edge"). |
-| `content/assistant.ts` | Assistant knowledge base. Answers and keywords. |
-| `components/assistant-match.ts` | Retrieval: scores a question against the knowledge base. |
+| `components/assistant-match.ts` | Assistant retrieval: builds the knowledge base per locale and scores questions against it. |
+| `components/Theme.tsx` | Theme toggle + the inline no-flash script. |
 | `components/Assistant.tsx` | The chat panel UI. |
 | `app/api/quote/route.ts` | Quote submissions. Optional Neon persistence. |
 | `public/img/` | Real client photos, renamed. Originals in `../assets/source/`. |
 | `qa/` | Screenshots from the build QA pass. Not shipped. |
+
+## Languages
+
+English is primary and is served at the **site root** (`/`, `/services`, …).
+Spanish lives under `/es`. Both are real, statically generated routes, so both
+get indexed and `hreflang` works; a client-side toggle would leave the Spanish
+copy invisible to search.
+
+Routes live under `app/[locale]/` so the layout can set `<html lang>` correctly.
+The rewrites in `next.config.ts` map the bare English paths onto `/en`
+internally — which is why English has no visible prefix and the homepage the
+client shares does not take a redirect hop.
+
+To add or change copy, edit `content/i18n.ts`. The `Dict` type makes a missing
+translation a build error rather than a silent English fallback.
+
+## Theming
+
+Light is the default and is what every visitor gets on first load. Dark is
+opt-in via the header toggle and remembered in `localStorage`. `prefers-color-scheme`
+is deliberately **not** consulted — the client asked for light on load.
+
+The theme redefines the *same* token names rather than adding new ones, so every
+CSS module and styled-jsx block flips without being touched. Two families:
+`--paper`/`--text` for the page, `--band`/`--band-fg` for the full-width feature
+sections (`.on-ink`). `--ink` stays genuinely dark in both themes for the few
+places where dark is the point regardless.
 
 ## Environment
 
@@ -51,6 +79,7 @@ create table quote_requests (
   city         text not null,
   service      text not null,
   details      text,
+  locale       text not null default 'en',
   submitted_at timestamptz not null
 );
 ```
@@ -83,12 +112,11 @@ writing before changing nameservers.
   cell at `opacity: 0` shows as a solid block; and the list items are anchor
   targets, where the reveal's 22px translate pushed headings under the sticky
   header.
-- **The header is dark because the logo is.** The 2026 logo is a rendered
-  composite on a `#1F1F1F` ground, not a transparent mark, so it cannot sit on a
-  light background without showing a dark rectangle. That ground is 1.19:1
-  against the site's ink, so on a dark header it is effectively invisible. Every
-  page already opens with a dark section, so the dark header is seamless
-  throughout rather than a bar floating over light content.
+- **The logo sits in a dark chip.** The 2026 logo is a rendered composite on a
+  `#1F1F1F` ground, not a transparent mark, so it cannot sit on a light
+  background without showing a rectangle. It is given that ground explicitly:
+  invisible in the dark theme, a deliberate dark chip in the light one. A
+  transparent source would let the chip go away.
 - **The logo is one file, cropped by CSS.** `public/img/blue-wings-logo.jpg` is
   the full 1123x1123 square. The header shows only the wings via a sized box
   plus `object-position`, rather than shipping a second cropped file to keep in
@@ -103,6 +131,12 @@ writing before changing nameservers.
   "Free estimate" button.
 - **The live site's `<title>` says "Blue Wings Pinting MN".** That typo is what
   Google has indexed today. Fixed here.
+- **The assistant answers in the visitor's language.** Same retrieval in both;
+  Spanish adds its own keyword and phrase sets. Accents are stripped before
+  matching, so "¿cuánto?" matches "cuanto". One trap worth knowing: Spanish
+  *techo* means both "ceiling" (which they paint) and "roof" (which they do
+  not), so there is an explicit out-of-scope entry whose phrases outscore the
+  painting services for roofing questions.
 - **The assistant is retrieval, not a language model.** It scores the question
   against `content/assistant.ts` and returns the best entry, so it can only say
   what the site already says. No API key, no per-message cost, no latency, and
