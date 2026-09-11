@@ -1,0 +1,93 @@
+.head {
+  padding-block: clamp(3.5rem, 7vw, 6rem);
+}
+
+.pairs {
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4rem);
+}
+
+.pair {
+  margin: 0;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.pair figcaption {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.kind {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+}
+
+.pair figcaption p {
+  color: var(--text-dim);
+  font-size: 0.96rem;
+  max-width: 52ch;
+}
+
+@media (min-width: 820px) {
+  .pairs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ---------- finished work ---------- */
+
+.finished {
+  background: var(--paper-warm);
+}
+
+.grid {
+  list-style: none;
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.gridItem {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.gridItem img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.gridItem span {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+
+@media (min-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------- cta ---------- */
+
+.cta {
+  padding-block: clamp(3.5rem, 7vw, 5.5rem);
+  text-align: center;
+}
+
+.ctaActions {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}

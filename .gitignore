@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# vercel
+.vercel/
+
+# env
+.env
+.env*.local
+
+# build QA screenshots — regenerated on demand, not source
+site/qa/
+
+# gstack browse scratch
+.gstack/
+
+# internal client docs — candid notes, kept out of the public repo
+PROJECT_BRIEF.md
+FACT_LEDGER.md
+
+# os
+.DS_Store
+Thumbs.db
+*.tsbuildinfo

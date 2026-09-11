@@ -1,0 +1,439 @@
+@import 'tailwindcss';
+
+/*
+  Palette is measured, not chosen:
+  --blue   #5170FF  sampled from the client logo (37.2% of its opaque pixels)
+  --ink    #000000  the logo's ring and lettering
+  --cedar  #8A5730  sampled from the real deck-after photo
+  See the private fact-and-proof ledger.
+*/
+:root {
+  --blue: #5170ff;
+  --blue-deep: #2f47c8;
+  --blue-dark: #16205c;
+  --blue-wash: #eef1ff;
+
+  --ink: #0a0b10;
+  --ink-soft: #14161f;
+  --ink-line: #242736;
+
+  --paper: #fbfaf7;
+  --paper-warm: #f2eee6;
+  --paper-dim: #d9d4c9;
+
+  --cedar: #8a5730;
+  --cedar-bright: #c6803c;
+
+  --text: #14161f;
+  --text-dim: #55596b;
+  --text-invert: #f4f5fa;
+  --text-invert-dim: #a7abbe;
+
+  --container: min(92vw, 1240px);
+  --wide: min(94vw, 1560px);
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --radius: 2px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow-x: hidden;
+  background: var(--paper);
+  color: var(--text);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  margin: 0;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--blue-deep);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+/* Dark sections invert the focus ring so it stays visible. */
+.on-ink :focus-visible {
+  outline-color: #8fa2ff;
+}
+
+/* ---------- layout ---------- */
+
+.container {
+  width: var(--container);
+  margin-inline: auto;
+}
+
+.wide {
+  width: var(--wide);
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: clamp(4.5rem, 9vw, 8rem);
+}
+
+/* ---------- type scale ---------- */
+
+.display {
+  font-size: clamp(2.75rem, 7.4vw, 6.25rem);
+}
+
+.h2 {
+  font-size: clamp(2rem, 4.4vw, 3.5rem);
+}
+
+.h3 {
+  font-size: clamp(1.3rem, 2.1vw, 1.75rem);
+}
+
+.eyebrow {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+}
+
+.on-ink .eyebrow {
+  color: #8fa2ff;
+}
+
+.lede {
+  font-size: clamp(1.0625rem, 1.5vw, 1.3125rem);
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+.on-ink .lede {
+  color: var(--text-invert-dim);
+}
+
+/* ---------- the wing rule ----------
+   The logo already carries the wings. Here the motif is reduced to a single
+   swept rule used as a section divider — present, not repeated as clip-art. */
+
+.wing-rule {
+  display: block;
+  width: 100%;
+  height: 14px;
+  color: var(--blue);
+  opacity: 0.55;
+}
+
+/* ---------- buttons ---------- */
+
+/*
+  White on the raw logo blue (#5170FF) is 4.11:1 — under the 4.5:1 AA floor for
+  text this size. Anything carrying white text uses --blue-deep (7.35:1)
+  instead; #5170FF stays for large display text, rules, washes and focus rings,
+  where it passes comfortably.
+*/
+.btn {
+  --btn-bg: var(--blue-deep);
+  --btn-fg: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 1rem 1.75rem;
+  min-height: 52px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 2px solid var(--btn-bg);
+  border-radius: var(--radius);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 0.18s var(--ease),
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+
+.btn:hover {
+  --btn-bg: var(--blue-dark);
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--text);
+  border-color: currentColor;
+}
+
+.btn-ghost:hover {
+  --btn-bg: var(--ink);
+  --btn-fg: #fff;
+  border-color: var(--ink);
+}
+
+.on-ink .btn-ghost {
+  --btn-fg: var(--text-invert);
+}
+
+.on-ink .btn-ghost:hover {
+  --btn-bg: #fff;
+  --btn-fg: var(--ink);
+  border-color: #fff;
+}
+
+/* ---------- scroll reveal ----------
+   Progressive enhancement: without JS, .reveal elements are simply visible.
+   The script adds [data-reveal-armed] before observing. */
+
+[data-reveal-armed] .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+[data-reveal-armed] .reveal.is-in {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s var(--ease),
+    transform 0.7s var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal-armed] .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- misc ---------- */
+
+.on-ink {
+  background: var(--ink);
+  color: var(--text-invert);
+}
+
+.rule {
+  border: 0;
+  border-top: 1px solid var(--paper-dim);
+  margin: 0;
+}
+
+.on-ink .rule {
+  border-top-color: var(--ink-line);
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.9rem 1.25rem;
+  background: var(--ink);
+  color: #fff;
+  font-weight: 700;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* ---------- footer (server component: styles live here) ---------- */
+
+.ft {
+  padding-top: clamp(3.5rem, 6vw, 5.5rem);
+  padding-bottom: 2rem;
+}
+
+.ft-grid {
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: 1fr;
+}
+
+.ft-brand img {
+  margin-bottom: 1rem;
+}
+
+.ft-name {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+}
+
+.ft-line {
+  margin-top: 0.35rem;
+  color: var(--text-invert-dim);
+  font-size: 0.92rem;
+  max-width: 30ch;
+}
+
+.ft-es {
+  margin-top: 0.85rem;
+  display: inline-block;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--ink-line);
+  border-radius: var(--radius);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-invert-dim);
+}
+
+.ft-col {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+
+.ft-head {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8fa2ff;
+  margin-bottom: 0.35rem;
+}
+
+.ft-col a {
+  color: var(--text-invert-dim);
+  font-size: 0.92rem;
+  width: fit-content;
+  transition: color 0.18s var(--ease);
+}
+
+.ft-col a:hover {
+  color: #fff;
+}
+
+.ft-strong {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem !important;
+  color: #fff !important;
+}
+
+.ft-area {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-invert-dim);
+  max-width: 32ch;
+}
+
+.ft-base {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ink-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--text-invert-dim);
+}
+
+@media (min-width: 700px) {
+  .ft-grid {
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+  }
+  .ft-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1000px) {
+  .ft-grid {
+    grid-template-columns: 1.5fr 0.9fr 1.1fr 1.2fr;
+  }
+  .ft-brand {
+    grid-column: auto;
+  }
+}
+
+/* Reveal must never hide content in print or in tools that rasterise the full
+   page without scrolling it. */
+@media print {
+  [data-reveal-armed] .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* The supplied logo file has no alpha channel — it is a circular badge sitting
+   on an opaque white square, so it renders as a white box on dark surfaces.
+   Clipping to a circle removes the corners without resampling or colour-keying
+   (which would leave a halo). Drop this once a transparent source arrives. */
+.ft-brand img {
+  border-radius: 50%;
+}

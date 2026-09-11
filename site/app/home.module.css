@@ -1,0 +1,355 @@
+/* ---------- hero ---------- */
+
+.hero {
+  position: relative;
+  padding-block: clamp(3rem, 7vw, 6rem) clamp(4rem, 8vw, 7rem);
+  overflow: hidden;
+}
+
+/* A single wash of brand blue bleeding off the top-right corner. One gesture,
+   not a gradient mesh. */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -10%;
+  width: 60vw;
+  height: 80%;
+  background: radial-gradient(
+    closest-side,
+    rgb(81 112 255 / 26%),
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.heroGrid {
+  position: relative;
+  display: grid;
+  gap: clamp(2.5rem, 5vw, 4rem);
+  align-items: center;
+}
+
+.heroCopy {
+  display: grid;
+  gap: 1.5rem;
+  justify-items: start;
+  max-width: 40rem;
+}
+
+.heroAccent {
+  color: var(--blue);
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.heroEs {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--text-invert-dim);
+}
+
+.heroMedia {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 34rem;
+  width: 100%;
+  justify-self: center;
+}
+
+.heroCaption {
+  font-size: 0.85rem;
+  color: var(--text-invert-dim);
+}
+
+.heroCaption strong {
+  color: var(--text-invert);
+}
+
+@media (min-width: 980px) {
+  .heroGrid {
+    grid-template-columns: 1.05fr 0.95fr;
+  }
+  .heroMedia {
+    justify-self: end;
+  }
+}
+
+/* ---------- value props ---------- */
+
+.props {
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+}
+
+.propsGrid {
+  display: grid;
+  gap: 2rem;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+}
+
+.propsGrid h2 {
+  margin-bottom: 0.6rem;
+}
+
+.propsGrid p {
+  color: var(--text-dim);
+  max-width: 38ch;
+}
+
+@media (min-width: 780px) {
+  .propsGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+/* ---------- shared section head ---------- */
+
+.headRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(2rem, 4vw, 3.25rem);
+}
+
+.headRow .eyebrow {
+  margin-bottom: 0.7rem;
+}
+
+.headLink {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding-bottom: 2px;
+  border-bottom: 2px solid currentColor;
+  white-space: nowrap;
+}
+
+.headLink:hover {
+  color: var(--blue);
+}
+
+/* ---------- services ---------- */
+
+.svcGrid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--paper-dim);
+  border: 1px solid var(--paper-dim);
+}
+
+.svcCard {
+  background: var(--paper);
+  transition: background-color 0.2s var(--ease);
+}
+
+.svcCard:hover {
+  background: var(--blue-wash);
+}
+
+.svcCard a {
+  display: grid;
+  gap: 0.45rem;
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  height: 100%;
+  align-content: start;
+}
+
+.svcNum {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--blue-deep);
+}
+
+.svcName {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.svcShort {
+  font-size: 0.92rem;
+  color: var(--text-dim);
+}
+
+/*
+  There are seven services. In a 2- or 3-column grid that leaves a dead cell,
+  which reads as a rendering bug. The last card spans the remainder instead and
+  lays its content out horizontally, so the row looks deliberate.
+*/
+.svcCard:last-child {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 640px) {
+  .svcGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .svcCard:last-child a {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'num name'
+      'num short';
+    column-gap: 1.5rem;
+    align-items: center;
+  }
+
+  .svcCard:last-child .svcNum {
+    grid-area: num;
+    align-self: center;
+  }
+
+  .svcCard:last-child .svcName {
+    grid-area: name;
+  }
+
+  .svcCard:last-child .svcShort {
+    grid-area: short;
+  }
+}
+
+@media (min-width: 1000px) {
+  .svcGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------- proof ---------- */
+
+.proof .headLink:hover {
+  color: #8fa2ff;
+}
+
+.proofGrid {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+
+.proofItem {
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.proofItem figcaption {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.proofKind {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8fa2ff;
+}
+
+.proofItem strong {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.proofSummary {
+  font-size: 0.92rem;
+  color: var(--text-invert-dim);
+  max-width: 44ch;
+}
+
+@media (min-width: 760px) {
+  .proofGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ---------- process ---------- */
+
+.steps {
+  list-style: none;
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  counter-reset: none;
+  max-width: 62rem;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem;
+  padding-block: 1.6rem;
+  border-top: 1px solid var(--paper-dim);
+}
+
+.step:last-child {
+  border-bottom: 1px solid var(--paper-dim);
+}
+
+.stepNum {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--blue-deep);
+  padding-top: 0.35rem;
+}
+
+.step h3 {
+  margin-bottom: 0.4rem;
+}
+
+.step p {
+  color: var(--text-dim);
+  max-width: 58ch;
+}
+
+@media (min-width: 700px) {
+  .step {
+    grid-template-columns: 5rem 1fr;
+    gap: 2rem;
+  }
+}
+
+/* ---------- service area ---------- */
+
+.area {
+  background: var(--paper-warm);
+  padding-block: clamp(3.5rem, 7vw, 6rem);
+}
+
+.areaInner {
+  display: grid;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+.areaMedia img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+@media (min-width: 900px) {
+  .areaInner {
+    grid-template-columns: 1fr 1fr;
+  }
+}

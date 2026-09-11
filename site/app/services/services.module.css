@@ -1,0 +1,167 @@
+.head {
+  padding-block: clamp(3.5rem, 7vw, 6rem);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(3rem, 6vw, 5rem);
+}
+
+.item {
+  /* Anchor links from the footer land below the sticky header. */
+  scroll-margin-top: 116px;
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--paper-dim);
+}
+
+.list > .item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.itemHead {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1.75rem;
+}
+
+.num {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--blue-deep);
+  padding-top: 0.7rem;
+}
+
+.short {
+  margin-top: 0.6rem;
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  max-width: 46ch;
+}
+
+.itemBody {
+  display: grid;
+  gap: clamp(1.75rem, 4vw, 3rem);
+}
+
+.itemText {
+  display: grid;
+  gap: 1.25rem;
+  justify-items: start;
+  align-content: start;
+}
+
+.para {
+  max-width: 56ch;
+  color: var(--text-dim);
+}
+
+.detail {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.7rem;
+  max-width: 56ch;
+}
+
+.detail li {
+  position: relative;
+  padding-left: 1.6rem;
+  font-size: 0.96rem;
+}
+
+.detail li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 9px;
+  height: 9px;
+  background: var(--blue);
+}
+
+.itemMedia img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+@media (min-width: 900px) {
+  .itemHead {
+    grid-template-columns: 5rem 1fr;
+    gap: 2rem;
+  }
+  .itemBody {
+    grid-template-columns: 1fr 0.72fr;
+    padding-left: 7rem;
+  }
+}
+
+/* ---------- process ---------- */
+
+.processBlock .steps {
+  list-style: none;
+  margin: clamp(2.5rem, 5vw, 3.5rem) 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--ink-line);
+  border: 1px solid var(--ink-line);
+}
+
+.processBlock .steps li {
+  background: var(--ink);
+  padding: clamp(1.5rem, 3vw, 2rem);
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+
+.stepNum {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #8fa2ff;
+}
+
+.processBlock .steps p {
+  font-size: 0.92rem;
+  color: var(--text-invert-dim);
+}
+
+@media (min-width: 700px) {
+  .processBlock .steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1080px) {
+  .processBlock .steps {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* ---------- cta ---------- */
+
+.cta {
+  background: var(--paper-warm);
+  padding-block: clamp(3.5rem, 7vw, 5.5rem);
+  text-align: center;
+}
+
+.ctaActions {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
