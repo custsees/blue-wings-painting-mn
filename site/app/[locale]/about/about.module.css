@@ -97,7 +97,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--blue-deep);
+  color: var(--eyebrow);
   padding-top: 0.35rem;
 }
 
@@ -137,7 +137,7 @@
 }
 
 .esBlock a {
-  color: #8fa2ff;
+  color: var(--band-eyebrow);
   font-weight: 700;
   text-decoration: underline;
 }

@@ -175,7 +175,8 @@ export default function BeforeAfter({
           position: relative;
           aspect-ratio: 3 / 4;
           overflow: hidden;
-          background: var(--ink-soft);
+          /* Placeholder behind a loading photo — neutral in both themes. */
+          background: var(--paper-dim);
           border-radius: var(--radius);
           touch-action: pan-y;
           cursor: ew-resize;

@@ -35,7 +35,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--blue-deep);
+  color: var(--eyebrow);
   padding-top: 0.7rem;
 }
 
@@ -113,12 +113,15 @@
   padding: 0;
   display: grid;
   gap: 1px;
-  background: var(--ink-line);
-  border: 1px solid var(--ink-line);
+  /* Band tokens, not --ink: these cells sit on an .on-ink section, which is
+     light in the light theme. Hard-coding dark here left dark text on a dark
+     cell and the step titles disappeared. */
+  background: var(--band-line);
+  border: 1px solid var(--band-line);
 }
 
 .processBlock .steps li {
-  background: var(--ink);
+  background: var(--band);
   padding: clamp(1.5rem, 3vw, 2rem);
   display: grid;
   gap: 0.5rem;
@@ -130,7 +133,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: #8fa2ff;
+  color: var(--band-eyebrow);
 }
 
 .processBlock .steps p {

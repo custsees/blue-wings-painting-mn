@@ -171,7 +171,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
-  color: var(--blue-deep);
+  color: var(--eyebrow);
 }
 
 .svcName {
@@ -233,7 +233,7 @@
 /* ---------- proof ---------- */
 
 .proof .headLink:hover {
-  color: #8fa2ff;
+  color: var(--band-eyebrow);
 }
 
 .proofGrid {
@@ -258,7 +258,7 @@
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #8fa2ff;
+  color: var(--band-eyebrow);
 }
 
 .proofItem strong {
@@ -309,7 +309,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--blue-deep);
+  color: var(--eyebrow);
   padding-top: 0.35rem;
 }
 
