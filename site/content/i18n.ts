@@ -462,7 +462,7 @@ const en: Dict = {
     meta: {
       title: 'Contact',
       description:
-        'Get a free painting estimate from Blue Wings Painting MN. Call (612) 205-5308, text, or send details through the form. Serving the Twin Cities metro. Hablamos Español.',
+        'Get a free painting estimate from Blue Wings Painting MN. Call (612) 636-5194, text, or send details through the form. Serving the Twin Cities metro. Hablamos Español.',
     },
     eyebrow: 'Contact',
     h1: 'Free estimate, no pressure.',
@@ -593,7 +593,7 @@ const en: Dict = {
       estimate:
         'Estimates are free. Send your name, phone, city and what needs painting through the form and we’ll get back to you — or call {phone} and skip the typing. Photos help.',
       contact:
-        'Phone {phone} (also {phoneAlt}). Email {email}. You can text the first number too.',
+        'Phone {phone}. Email {email}. You can text that number too.',
       spanish:
         'Sí — Hablamos Español. Llama al {phone} para un presupuesto gratis.',
       'work-proof':
@@ -905,7 +905,7 @@ const es: Dict = {
     meta: {
       title: 'Contacto',
       description:
-        'Pide un presupuesto de pintura gratis a Blue Wings Painting MN. Llama al (612) 205-5308, manda mensaje o envía los detalles por el formulario. Atendemos el área metro de Twin Cities. Hablamos Español.',
+        'Pide un presupuesto de pintura gratis a Blue Wings Painting MN. Llama al (612) 636-5194, manda mensaje o envía los detalles por el formulario. Atendemos el área metro de Twin Cities. Hablamos Español.',
     },
     eyebrow: 'Contacto',
     h1: 'Presupuesto gratis, sin compromiso.',
@@ -1037,7 +1037,7 @@ const es: Dict = {
       estimate:
         'Los presupuestos son gratis. Manda tu nombre, teléfono, ciudad y qué necesitas pintar por el formulario y te contactamos — o llama al {phone} y te ahorras escribir. Las fotos ayudan.',
       contact:
-        'Teléfono {phone} (también {phoneAlt}). Correo {email}. Al primer número también puedes mandar mensaje.',
+        'Teléfono {phone}. Correo {email}. A ese número también puedes mandar mensaje.',
       spanish:
         'Sí — Hablamos Español. Llama al {phone} para un presupuesto gratis.',
       'work-proof':
@@ -1165,7 +1165,7 @@ export function getDict(locale: Locale): Dict {
   return dictionaries[locale] ?? dictionaries[defaultLocale];
 }
 
-/** Fills {phone} / {email} / {phoneAlt} / {cities} placeholders. */
+/** Fills {phone} / {email} / {cities} placeholders. */
 export function fill(
   template: string,
   values: Record<string, string>,

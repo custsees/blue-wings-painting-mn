@@ -18,10 +18,8 @@ export const business = {
   nameFull: 'Blue Wings Painting MN',
   /** Live-site meta description, verbatim. */
   descriptionSource: 'We are an Interior and Exterior Painting Company',
-  phone: '(612) 205-5308',
-  phoneHref: 'tel:+16122055308',
-  phoneAlt: '(612) 636-5194',
-  phoneAltHref: 'tel:+16126365194',
+  phone: '(612) 636-5194',
+  phoneHref: 'tel:+16126365194',
   email: 'bluewingspaintingmn@gmail.com',
   emailHref: 'mailto:bluewingspaintingmn@gmail.com',
   facebook:
@@ -132,5 +130,5 @@ export function pathFor(key: NavKey, locale: 'en' | 'es'): string {
  * pair it with a real form everywhere it appears.
  */
 export function smsHrefFor(body: string): string {
-  return `sms:+16122055308?&body=${encodeURIComponent(body)}`;
+  return `sms:+16126365194?&body=${encodeURIComponent(body)}`;
 }

@@ -45,7 +45,6 @@ export default function Footer({ locale }: { locale: Locale }) {
           <a href={business.phoneHref} className="ft-strong">
             {business.phone}
           </a>
-          <a href={business.phoneAltHref}>{business.phoneAlt}</a>
           <a href={business.emailHref}>{business.email}</a>
           <a href={business.facebook} target="_blank" rel="noopener noreferrer">
             Facebook

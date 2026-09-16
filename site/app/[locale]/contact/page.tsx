@@ -70,9 +70,6 @@ export default async function ContactPage({
               <a className={styles.big} href={business.phoneHref}>
                 {business.phone}
               </a>
-              <a className={styles.sub} href={business.phoneAltHref}>
-                {business.phoneAlt}
-              </a>
               <a className={styles.textLink} href={smsHref}>
                 {t.contact.sendText}
               </a>

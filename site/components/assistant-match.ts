@@ -116,7 +116,6 @@ const enPhrases: Record<string, string[]> = {
 function values() {
   return {
     phone: business.phone,
-    phoneAlt: business.phoneAlt,
     email: business.email,
     cities: namedCities.join(', '),
   };

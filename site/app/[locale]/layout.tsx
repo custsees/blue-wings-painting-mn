@@ -128,7 +128,7 @@ export default async function LocaleLayout({
     '@type': 'HousePainter',
     name: business.nameFull,
     url: `${business.siteUrl}${canonicalPath(locale)}`,
-    telephone: '+1-612-205-5308',
+    telephone: '+1-612-636-5194',
     email: business.email,
     image: `${business.siteUrl}/img/blue-wings-logo.jpg`,
     logo: `${business.siteUrl}/img/blue-wings-logo.jpg`,
