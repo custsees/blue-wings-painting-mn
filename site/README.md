@@ -68,6 +68,8 @@ places where dark is the point regardless.
 |---|---|---|
 | `DATABASE_URL` | No | Neon connection string. **Without it the quote route still accepts leads and logs them** rather than failing at a customer. Set it in Vercel to start persisting — no code change needed. |
 
+Note there is **no email service and no API key**. See "How an estimate reaches Jessica" below.
+
 Table expected by the route:
 
 ```sql
@@ -83,6 +85,35 @@ create table quote_requests (
   submitted_at timestamptz not null
 );
 ```
+
+## How an estimate reaches Jessica
+
+Submitting the quote form does two independent things, so no single failure
+loses a lead:
+
+1. **POSTs to `/api/quote`** — records it server-side, and persists to Neon once
+   `DATABASE_URL` is set.
+2. **Hands the visitor a pre-filled email** — `mailto:` with a triage-ready
+   subject (`Free estimate — {service} in {city}`) and one labelled line per
+   field. This is the same handoff the mariachi build uses, and today it is the
+   only path that actually reaches her inbox.
+
+A `400` stops the flow and shows the validation message, because that is
+something the visitor can fix. Any other failure — offline, server down — is
+not their problem, so the email goes anyway.
+
+The body carries **which language the customer wrote in**, so Jessica knows
+whether to reply in Spanish. Empty optional fields render as `—`.
+
+`mailto:` has one real failure mode: a device with no mail client configured
+opens nothing, silently. The confirmation screen handles that — it explains
+what should have happened, offers an "open my email again" button, and falls
+back to the phone number and address as plain text.
+
+**To replace this with true server-side sending later** (Resend, Postmark, SMTP
+on Jessica's own account), add it inside `app/api/quote/route.ts` next to the
+Neon write. Keep the `mailto` as the fallback for when the provider is down or
+out of quota.
 
 ## Deploying
 

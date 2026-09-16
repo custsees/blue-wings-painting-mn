@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { getDict, type Locale } from '@/content/i18n';
+import { fill, getDict, type Locale } from '@/content/i18n';
 import { business, serviceSlugs } from '@/content/site';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
@@ -11,7 +11,42 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
   const f = t.form;
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [mailHref, setMailHref] = useState('');
   const doneRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Builds the estimate request as a pre-filled email, the same handoff the
+   * mariachi build uses: one labelled line per field, em dash for anything
+   * left blank, and a subject Jessica can triage from her inbox list.
+   *
+   * The visitor's language goes in the body on purpose — it tells Jessica
+   * which language to reply in, which matters on a site that advertises
+   * "Hablamos Español".
+   */
+  function buildMailHref(data: Record<string, FormDataEntryValue>): string {
+    const L = f.emailLabels;
+    const val = (k: string) => {
+      const v = String(data[k] ?? '').trim();
+      return v || '—';
+    };
+    const body = [
+      `${L.name}: ${val('name')}`,
+      `${L.phone}: ${val('phone')}`,
+      `${L.email}: ${val('email')}`,
+      `${L.city}: ${val('city')}`,
+      `${L.service}: ${val('service')}`,
+      '',
+      `${L.details}:`,
+      val('details'),
+      '',
+      `${L.language}: ${f.emailLanguageValue}`,
+    ].join('\n');
+
+    const subject = f.emailSubject(val('service'), val('city'));
+    return `mailto:${business.email}?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(body)}`;
+  }
 
   /*
     The confirmation replaces a tall form with a short box, so the page
@@ -40,40 +75,67 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
 
     setStatus('sending');
     setError(null);
+    const href = buildMailHref(data);
+
+    /*
+      Two independent delivery paths, so no single failure loses a lead:
+      the POST records it server-side (and persists to Neon once that is
+      configured), and the mailto puts it in Jessica's inbox today.
+
+      A 400 is a validation problem the visitor can fix, so we stop and show
+      it. Any other failure — offline, server down — is not their problem, so
+      we carry on to the email regardless.
+    */
     try {
       const res = await fetch('/api/quote', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ ...data, locale }),
       });
-      if (!res.ok) {
+      if (res.status === 400) {
         const body = (await res.json().catch(() => null)) as {
           error?: string;
         } | null;
-        throw new Error(body?.error ?? f.genericError);
+        setStatus('error');
+        setError(body?.error ?? f.genericError);
+        return;
       }
-      setStatus('sent');
-      form.reset();
-    } catch (err) {
-      setStatus('error');
-      setError(err instanceof Error ? err.message : f.genericError);
+    } catch {
+      // Recording failed. The email still goes.
     }
+
+    setMailHref(href);
+    setStatus('sent');
+    form.reset();
+    // assign() rather than writing location.href: identical behaviour,
+    // and the React Compiler lint correctly rejects writing to an
+    // external value.
+    window.location.assign(href);
   }
 
   if (status === 'sent') {
     return (
       <div className="qf-done" role="status" tabIndex={-1} ref={doneRef}>
         <h3 className="h3">{f.sentTitle}</h3>
-        <p>
-          {f.sentBody} <a href={business.phoneHref}>{business.phone}</a>.
+        <p>{f.sentBody}</p>
+        <div className="qf-done-actions">
+          <a className="btn" href={mailHref}>
+            {f.openEmail}
+          </a>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            onClick={() => setStatus('idle')}
+          >
+            {f.sendAnother}
+          </button>
+        </div>
+        <p className="qf-done-fallback">
+          {fill(f.sentFallback, {
+            phone: business.phone,
+            email: business.email,
+          })}
         </p>
-        <button
-          type="button"
-          className="btn btn-ghost"
-          onClick={() => setStatus('idle')}
-        >
-          {f.sendAnother}
-        </button>
         <style jsx>{`
           .qf-done {
             display: grid;
@@ -84,10 +146,15 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
             border-radius: var(--radius);
             background: var(--blue-wash);
           }
-          .qf-done a {
-            font-weight: 700;
-            color: var(--eyebrow);
-            text-decoration: underline;
+          .qf-done-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+          }
+          /* Scoped away from .btn, which lives in .qf-done-actions. */
+          .qf-done-fallback {
+            font-size: 0.88rem;
+            color: var(--text-dim);
           }
         `}</style>
       </div>
@@ -177,6 +244,7 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
       )}
 
       <p className="qf-note">{f.note}</p>
+      <p className="qf-note">{f.mailNote}</p>
 
       <style jsx>{`
         .qf {

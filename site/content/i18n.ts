@@ -164,6 +164,23 @@ export type Dict = {
     sentBody: string;
     sendAnother: string;
     company: string;
+    /* The estimate is delivered by handing the visitor a pre-filled email,
+       the same approach as the mariachi build. Nothing here is sent by a
+       server, so there is no API key and no inbox to misconfigure. */
+    mailNote: string;
+    emailSubject: (service: string, city: string) => string;
+    emailLabels: {
+      name: string;
+      phone: string;
+      email: string;
+      city: string;
+      service: string;
+      details: string;
+      language: string;
+    };
+    emailLanguageValue: string;
+    openEmail: string;
+    sentFallback: string;
   };
 
   footer: {
@@ -499,10 +516,27 @@ const en: Dict = {
     genericError: 'Something went wrong.',
     validationError:
       'Please fill in your name, phone, city and what needs painting.',
-    sentTitle: 'Thanks — we have your request.',
-    sentBody: 'We’ll be in touch about your estimate. If it’s urgent, call',
-    sendAnother: 'Send another',
+    sentTitle: 'Almost there — press send.',
+    sentBody:
+      'Your email app should have opened with all the details already filled in. Send it and your request is with us.',
+    sendAnother: 'Start another request',
     company: 'Company',
+    mailNote:
+      'Sending opens your email app with everything filled in — you just press send.',
+    emailSubject: (service, city) => `Free estimate — ${service} in ${city}`,
+    emailLabels: {
+      name: 'Name',
+      phone: 'Phone',
+      email: 'Email',
+      city: 'City',
+      service: 'What needs painting',
+      details: 'Details',
+      language: 'Customer wrote in',
+    },
+    emailLanguageValue: 'English',
+    openEmail: 'Open my email again',
+    sentFallback:
+      'Nothing opened? Call or text {phone}, or email {email} directly — same result.',
   },
 
   footer: {
@@ -942,11 +976,28 @@ const es: Dict = {
     genericError: 'Algo salió mal.',
     validationError:
       'Por favor completa tu nombre, teléfono, ciudad y qué necesitas pintar.',
-    sentTitle: 'Gracias — ya tenemos tu solicitud.',
+    sentTitle: 'Ya casi — solo dale enviar.',
     sentBody:
-      'Te contactamos para tu presupuesto. Si es urgente, llama al',
-    sendAnother: 'Enviar otra',
+      'Tu aplicación de correo debió abrirse con todos los datos ya escritos. Envíalo y tu solicitud llega con nosotros.',
+    sendAnother: 'Hacer otra solicitud',
     company: 'Empresa',
+    mailNote:
+      'Al enviar se abre tu correo con todo ya escrito — tú solo le das enviar.',
+    emailSubject: (service, city) =>
+      `Presupuesto gratis — ${service} en ${city}`,
+    emailLabels: {
+      name: 'Nombre',
+      phone: 'Teléfono',
+      email: 'Correo',
+      city: 'Ciudad',
+      service: 'Qué necesita pintura',
+      details: 'Detalles',
+      language: 'El cliente escribió en',
+    },
+    emailLanguageValue: 'Español',
+    openEmail: 'Abrir mi correo otra vez',
+    sentFallback:
+      '¿No se abrió nada? Llama o manda mensaje al {phone}, o escribe directo a {email} — es lo mismo.',
   },
 
   footer: {
