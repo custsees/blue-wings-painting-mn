@@ -61,7 +61,7 @@ export default async function ContactPage({
             <h2 className="h3" style={{ marginBottom: '1.25rem' }}>
               {t.contact.formTitle}
             </h2>
-            <QuoteForm locale={locale} />
+            <QuoteForm locale={locale} serverSend={Boolean(process.env.RESEND_API_KEY)} />
           </div>
 
           <aside className={styles.aside}>

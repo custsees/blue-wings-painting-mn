@@ -4,25 +4,36 @@ import { useEffect, useRef, useState } from 'react';
 import { fill, getDict, type Locale } from '@/content/i18n';
 import { business, serviceSlugs } from '@/content/site';
 
-type Status = 'idle' | 'sending' | 'sent' | 'error';
+type Status = 'idle' | 'sending' | 'sent';
 
-export default function QuoteForm({ locale }: { locale: Locale }) {
+type Props = {
+  locale: Locale;
+  /**
+   * True when the server can send the estimate itself (RESEND_API_KEY is set).
+   * It changes what the visitor is asked to do, so it is decided on the server
+   * at render time rather than guessed in the browser.
+   */
+  serverSend?: boolean;
+};
+
+export default function QuoteForm({ locale, serverSend = false }: Props) {
   const t = getDict(locale);
   const f = t.form;
   const [status, setStatus] = useState<Status>('idle');
+  const [delivered, setDelivered] = useState(false);
   const [mailHref, setMailHref] = useState('');
+  const [gmailHref, setGmailHref] = useState('');
   const doneRef = useRef<HTMLDivElement>(null);
 
   /**
-   * Builds the estimate request as a pre-filled email, the same handoff the
-   * mariachi build uses: one labelled line per field, em dash for anything
-   * left blank, and a subject Jessica can triage from her inbox list.
+   * The estimate as a labelled plain-text message: one line per field, em dash
+   * for anything left blank.
    *
    * The visitor's language goes in the body on purpose — it tells Jessica
    * which language to reply in, which matters on a site that advertises
    * "Hablamos Español".
    */
-  function buildMailHref(data: Record<string, FormDataEntryValue>): string {
+  function buildMessage(data: Record<string, FormDataEntryValue>) {
     const L = f.emailLabels;
     const val = (k: string) => {
       const v = String(data[k] ?? '').trim();
@@ -41,21 +52,29 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
       `${L.language}: ${f.emailLanguageValue}`,
     ].join('\n');
 
-    const subject = f.emailSubject(val('service'), val('city'));
+    return { subject: f.emailSubject(val('service'), val('city')), body };
+  }
+
+  function mailtoHref(subject: string, body: string) {
     return `mailto:${business.email}?subject=${encodeURIComponent(
       subject,
     )}&body=${encodeURIComponent(body)}`;
   }
 
-  /** A real anchor click — the most reliable way to hand off to mailto:. */
-  function openMail(href: string) {
-    const a = document.createElement('a');
-    a.href = href;
-    a.rel = 'noopener';
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  /**
+   * Gmail's web compose window. The reason it is offered at all: mailto: opens
+   * nothing whatsoever on a machine with no mail app configured, which is most
+   * desktops now. This is just a web page, so it always opens.
+   */
+  function gmailComposeHref(subject: string, body: string) {
+    const q = new URLSearchParams({
+      view: 'cm',
+      fs: '1',
+      to: business.email,
+      su: subject,
+      body,
+    });
+    return `https://mail.google.com/mail/?${q.toString()}`;
   }
 
   /*
@@ -72,53 +91,77 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
     el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [status]);
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
 
     // Honeypot: real people leave this empty. Bots fill it.
     if (data.company) {
+      setDelivered(true);
       setStatus('sent');
       return;
     }
 
     setStatus('sending');
-    const href = buildMailHref(data);
-    setMailHref(href);
+
+    const { subject, body } = buildMessage(data);
+    setMailHref(mailtoHref(subject, body));
+    setGmailHref(gmailComposeHref(subject, body));
 
     /*
-      Open the mail client FIRST, synchronously, while the click's user
-      activation is still live. Awaiting the fetch before this loses that
-      activation and the browser silently refuses to open mailto: — which
-      looks exactly like the button doing nothing.
+      Nothing here tries to open the visitor's mail app on their behalf.
+      A mailto: launched from script is refused the moment the click's
+      transient activation is gone, and opens nothing at all on a machine
+      with no mail app configured — in both cases silently, which reads as a
+      button that does nothing. The confirmation hands them two real links
+      instead, and their own click on one of those always counts.
     */
-    openMail(href);
+    let emailed = false;
+    try {
+      const res = await fetch('/api/quote', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ ...data, locale }),
+      });
+      const json: unknown = await res.json().catch(() => null);
+      emailed =
+        res.ok &&
+        typeof json === 'object' &&
+        json !== null &&
+        (json as { emailed?: boolean }).emailed === true;
+    } catch {
+      // Offline, blocked, server down. The hand-off below still delivers it.
+      emailed = false;
+    }
 
+    setDelivered(emailed);
     setStatus('sent');
     form.reset();
-
-    /*
-      Record it afterwards. The request has already left via email, so this
-      is bookkeeping: it feeds the Neon table once DATABASE_URL is set, and
-      a failure here must never cost the visitor anything.
-    */
-    void fetch('/api/quote', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...data, locale }),
-    }).catch(() => {});
   }
 
   if (status === 'sent') {
     return (
       <div className="qf-done" role="status" tabIndex={-1} ref={doneRef}>
-        <h3 className="h3">{f.sentTitle}</h3>
-        <p>{f.sentBody}</p>
+        <h3 className="h3">{delivered ? f.deliveredTitle : f.sentTitle}</h3>
+        <p>{delivered ? f.deliveredBody : f.sentBody}</p>
+
         <div className="qf-done-actions">
-          <a className="btn" href={mailHref}>
-            {f.openEmail}
-          </a>
+          {!delivered && (
+            <>
+              <a className="btn" href={mailHref}>
+                {f.openEmail}
+              </a>
+              <a
+                className="btn btn-ghost"
+                href={gmailHref}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {f.openGmail}
+              </a>
+            </>
+          )}
           <button
             type="button"
             className="btn btn-ghost"
@@ -127,12 +170,16 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
             {f.sendAnother}
           </button>
         </div>
-        <p className="qf-done-fallback">
-          {fill(f.sentFallback, {
-            phone: business.phone,
-            email: business.email,
-          })}
-        </p>
+
+        {!delivered && (
+          <p className="qf-done-fallback">
+            {fill(f.sentFallback, {
+              phone: business.phone,
+              email: business.email,
+            })}
+          </p>
+        )}
+
         <style jsx>{`
           .qf-done {
             display: grid;
@@ -234,7 +281,7 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
       </div>
 
       <p className="qf-note">{f.note}</p>
-      <p className="qf-note">{f.mailNote}</p>
+      {!serverSend && <p className="qf-note">{f.mailNote}</p>}
 
       <style jsx>{`
         .qf {
@@ -316,18 +363,6 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
         .qf-actions :global(.btn:disabled) {
           opacity: 0.6;
           cursor: progress;
-        }
-
-        .qf-error {
-          padding: 0.9rem 1rem;
-          border-left: 3px solid #b3261e;
-          background: color-mix(in srgb, #b3261e 8%, var(--paper));
-          font-size: 0.92rem;
-        }
-
-        .qf-error a {
-          font-weight: 700;
-          text-decoration: underline;
         }
 
         .qf-note {

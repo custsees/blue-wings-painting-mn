@@ -164,9 +164,10 @@ export type Dict = {
     sentBody: string;
     sendAnother: string;
     company: string;
-    /* The estimate is delivered by handing the visitor a pre-filled email,
-       the same approach as the mariachi build. Nothing here is sent by a
-       server, so there is no API key and no inbox to misconfigure. */
+    /* Used when the server cannot send the estimate itself: the visitor is
+       handed the same message pre-written and clicks send. Kept as the
+       fallback even once RESEND_API_KEY exists, for a rejected key, a dead
+       network, or an exhausted quota. */
     mailNote: string;
     emailSubject: (service: string, city: string) => string;
     emailLabels: {
@@ -180,7 +181,13 @@ export type Dict = {
     };
     emailLanguageValue: string;
     openEmail: string;
+    openGmail: string;
     sentFallback: string;
+    /* Shown instead of the hand-off copy when the server actually sent the
+       email itself (RESEND_API_KEY is set). Then there is nothing for the
+       visitor to do. */
+    deliveredTitle: string;
+    deliveredBody: string;
   };
 
   footer: {
@@ -518,11 +525,11 @@ const en: Dict = {
       'Please fill in your name, phone, city and what needs painting.',
     sentTitle: 'Almost there — press send.',
     sentBody:
-      'Your email app should have opened with all the details already filled in. Send it and your request is with us.',
+      'Your request is written out and ready to go. Open it and press send — that is the last step.',
     sendAnother: 'Start another request',
     company: 'Company',
     mailNote:
-      'Sending opens your email app with everything filled in — you just press send.',
+      'We write the email for you. The next screen hands it to you ready to send — in your email app or in Gmail.',
     emailSubject: (service, city) => `Free estimate — ${service} in ${city}`,
     emailLabels: {
       name: 'Name',
@@ -534,9 +541,13 @@ const en: Dict = {
       language: 'Customer wrote in',
     },
     emailLanguageValue: 'English',
-    openEmail: 'Open my email again',
+    openEmail: 'Open in my email app',
+    openGmail: 'Open in Gmail',
     sentFallback:
-      'Nothing opened? Call or text {phone}, or email {email} directly — same result.',
+      'Neither one working? Call or text {phone}, or email {email} directly — same result.',
+    deliveredTitle: 'Got it — your request is in.',
+    deliveredBody:
+      'It went straight to Blue Wings Painting. Expect a call or text back to set up your free estimate.',
   },
 
   footer: {
@@ -978,11 +989,11 @@ const es: Dict = {
       'Por favor completa tu nombre, teléfono, ciudad y qué necesitas pintar.',
     sentTitle: 'Ya casi — solo dale enviar.',
     sentBody:
-      'Tu aplicación de correo debió abrirse con todos los datos ya escritos. Envíalo y tu solicitud llega con nosotros.',
+      'Tu solicitud ya está escrita y lista. Ábrela y dale enviar — ese es el último paso.',
     sendAnother: 'Hacer otra solicitud',
     company: 'Empresa',
     mailNote:
-      'Al enviar se abre tu correo con todo ya escrito — tú solo le das enviar.',
+      'Nosotros escribimos el correo por ti. En la siguiente pantalla te lo entregamos listo para enviar — en tu correo o en Gmail.',
     emailSubject: (service, city) =>
       `Presupuesto gratis — ${service} en ${city}`,
     emailLabels: {
@@ -995,9 +1006,13 @@ const es: Dict = {
       language: 'El cliente escribió en',
     },
     emailLanguageValue: 'Español',
-    openEmail: 'Abrir mi correo otra vez',
+    openEmail: 'Abrir en mi correo',
+    openGmail: 'Abrir en Gmail',
     sentFallback:
-      '¿No se abrió nada? Llama o manda mensaje al {phone}, o escribe directo a {email} — es lo mismo.',
+      '¿Ninguno de los dos abre? Llama o manda mensaje al {phone}, o escribe directo a {email} — es lo mismo.',
+    deliveredTitle: 'Listo — ya recibimos tu solicitud.',
+    deliveredBody:
+      'Llegó directo a Blue Wings Painting. Te van a llamar o mandar mensaje para agendar tu presupuesto gratis.',
   },
 
   footer: {

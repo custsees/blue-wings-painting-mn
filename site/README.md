@@ -67,8 +67,12 @@ places where dark is the point regardless.
 | Variable | Required | Effect |
 |---|---|---|
 | `DATABASE_URL` | No | Neon connection string. **Without it the quote route still accepts leads and logs them** rather than failing at a customer. Set it in Vercel to start persisting — no code change needed. |
+| `RESEND_API_KEY` | No | Turns on real server-side sending. Without it the form falls back to handing the visitor a pre-filled email to send themselves. |
+| `QUOTE_TO_EMAIL` | No | Where leads are delivered. Defaults to `business.email` in `content/site.ts`. |
+| `QUOTE_FROM_EMAIL` | No | Sender. Defaults to Resend's shared `onboarding@resend.dev`, which works with no DNS setup. Point it at an address on a verified domain once there is one, or the mail is more likely to be filtered. |
 
-Note there is **no email service and no API key**. See "How an estimate reaches Jessica" below.
+Every one of these is optional, and each failure is independent — see "How an
+estimate reaches Jessica" below.
 
 Table expected by the route:
 
@@ -88,32 +92,40 @@ create table quote_requests (
 
 ## How an estimate reaches Jessica
 
-Submitting the quote form does two independent things, so no single failure
-loses a lead:
+Submitting the quote form POSTs to `/api/quote`, which tries two independent
+things and reports what happened:
 
-1. **POSTs to `/api/quote`** — records it server-side, and persists to Neon once
-   `DATABASE_URL` is set.
-2. **Hands the visitor a pre-filled email** — `mailto:` with a triage-ready
-   subject (`Free estimate — {service} in {city}`) and one labelled line per
-   field. This is the same handoff the mariachi build uses, and today it is the
-   only path that actually reaches her inbox.
+- **Stores it** in Neon, if `DATABASE_URL` is set.
+- **Emails it** to Jessica through Resend, if `RESEND_API_KEY` is set.
 
-A `400` stops the flow and shows the validation message, because that is
-something the visitor can fix. Any other failure — offline, server down — is
-not their problem, so the email goes anyway.
+The response carries `emailed`, and that single flag decides what the visitor
+sees:
 
-The body carries **which language the customer wrote in**, so Jessica knows
-whether to reply in Spanish. Empty optional fields render as `—`.
+- `emailed: true` — "Got it, your request is in." Nothing left for them to do.
+- `emailed: false` — the confirmation hands them the same message pre-written,
+  as **two links they click themselves**: `mailto:` for their own mail app, and
+  a Gmail web compose window. Underneath, the phone number and address in plain
+  text.
 
-`mailto:` has one real failure mode: a device with no mail client configured
-opens nothing, silently. The confirmation screen handles that — it explains
-what should have happened, offers an "open my email again" button, and falls
-back to the phone number and address as plain text.
+**Why the visitor clicks, rather than the page opening their mail app for
+them.** A script-launched `mailto:` is refused once the click's transient user
+activation is gone (any `await` spends it), and on a desktop with no mail client
+configured it opens nothing at all. Both failures are silent, and both read as a
+button that does nothing. A link the visitor clicks carries their own
+activation, and the Gmail option needs no mail client whatsoever.
 
-**To replace this with true server-side sending later** (Resend, Postmark, SMTP
-on Jessica's own account), add it inside `app/api/quote/route.ts` next to the
-Neon write. Keep the `mailto` as the fallback for when the provider is down or
-out of quota.
+Subjects are triage-ready (`Free estimate — {service} in {city}`), one labelled
+line per field, and the body carries **which language the customer wrote in** so
+Jessica knows whether to reply in Spanish. Empty optional fields render as `—`.
+
+Nothing here can 500 at a customer: a database error, a rejected API key or a
+dead network all just leave `emailed: false`, and the hand-off still delivers
+the lead.
+
+**To turn on real sending:** create a Resend account, add `RESEND_API_KEY` in
+Vercel, redeploy. To move off Resend, replace `emailLead()` in
+`app/api/quote/route.ts` — it is one `fetch`, and everything else keys off its
+boolean return.
 
 ## Deploying
 
