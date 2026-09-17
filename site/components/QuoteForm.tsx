@@ -10,7 +10,6 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
   const t = getDict(locale);
   const f = t.form;
   const [status, setStatus] = useState<Status>('idle');
-  const [error, setError] = useState<string | null>(null);
   const [mailHref, setMailHref] = useState('');
   const doneRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +47,17 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
     )}&body=${encodeURIComponent(body)}`;
   }
 
+  /** A real anchor click — the most reliable way to hand off to mailto:. */
+  function openMail(href: string) {
+    const a = document.createElement('a');
+    a.href = href;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   /*
     The confirmation replaces a tall form with a short box, so the page
     collapses upward and the "thanks" can end up above the viewport — the
@@ -62,7 +72,7 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
     el.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [status]);
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
@@ -74,43 +84,30 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
     }
 
     setStatus('sending');
-    setError(null);
     const href = buildMailHref(data);
+    setMailHref(href);
 
     /*
-      Two independent delivery paths, so no single failure loses a lead:
-      the POST records it server-side (and persists to Neon once that is
-      configured), and the mailto puts it in Jessica's inbox today.
-
-      A 400 is a validation problem the visitor can fix, so we stop and show
-      it. Any other failure — offline, server down — is not their problem, so
-      we carry on to the email regardless.
+      Open the mail client FIRST, synchronously, while the click's user
+      activation is still live. Awaiting the fetch before this loses that
+      activation and the browser silently refuses to open mailto: — which
+      looks exactly like the button doing nothing.
     */
-    try {
-      const res = await fetch('/api/quote', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...data, locale }),
-      });
-      if (res.status === 400) {
-        const body = (await res.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        setStatus('error');
-        setError(body?.error ?? f.genericError);
-        return;
-      }
-    } catch {
-      // Recording failed. The email still goes.
-    }
+    openMail(href);
 
-    setMailHref(href);
     setStatus('sent');
     form.reset();
-    // assign() rather than writing location.href: identical behaviour,
-    // and the React Compiler lint correctly rejects writing to an
-    // external value.
-    window.location.assign(href);
+
+    /*
+      Record it afterwards. The request has already left via email, so this
+      is bookkeeping: it feeds the Neon table once DATABASE_URL is set, and
+      a failure here must never cost the visitor anything.
+    */
+    void fetch('/api/quote', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ ...data, locale }),
+    }).catch(() => {});
   }
 
   if (status === 'sent') {
@@ -235,13 +232,6 @@ export default function QuoteForm({ locale }: { locale: Locale }) {
           {f.orCall(business.phone)}
         </a>
       </div>
-
-      {status === 'error' && (
-        <p className="qf-error" role="alert">
-          {error}
-          {f.errorSuffix(business.phone, business.email)}
-        </p>
-      )}
 
       <p className="qf-note">{f.note}</p>
       <p className="qf-note">{f.mailNote}</p>
