@@ -1,5 +1,12 @@
+import type { BusinessView, ServiceView } from '@/cms/content';
 import { fill, getDict, type Locale } from '@/content/i18n';
-import { business, namedCities, serviceSlugs } from '@/content/site';
+
+/**
+ * The facts the assistant answers from. Passed in rather than imported so the
+ * answers track what the client last saved: she can correct the phone number
+ * or add a service and the bot stops contradicting her own site.
+ */
+export type Knowledge = { services: ServiceView[]; business: BusinessView };
 
 /**
  * Retrieval for the site assistant, in either language.
@@ -113,19 +120,20 @@ const enPhrases: Record<string, string[]> = {
   scope: ['fix roofs', 'repair the roof', 'do you do roofing', 'replace the roof'],
 };
 
-function values() {
+function values({ business }: Knowledge) {
   return {
     phone: business.phone,
     email: business.email,
-    cities: namedCities.join(', '),
+    cities: business.cities.join(', '),
   };
 }
 
-export function buildEntries(locale: Locale): Entry[] {
+export function buildEntries(locale: Locale, knowledge: Knowledge): Entry[] {
   const t = getDict(locale);
   const a = t.assistant;
   const prefix = locale === 'es' ? '/es' : '';
-  const v = values();
+  const v = values(knowledge);
+  const { services } = knowledge;
 
   const merge = (id: string, base: Record<string, string[]>) => [
     ...(sharedKeywords[id] ?? []),
@@ -136,16 +144,20 @@ export function buildEntries(locale: Locale): Entry[] {
     locale === 'en' ? (enPhrases[id] ?? []) : (a.extraPhrases[id] ?? []);
 
   // One entry per service, built from the same copy the Services page renders.
-  const serviceEntries: Entry[] = serviceSlugs.map((slug) => {
-    const s = t.services.items[slug];
-    const id = `service-${slug}`;
+  const serviceEntries: Entry[] = services.map((s) => {
+    const id = `service-${s.slug}`;
     return {
       id,
-      keywords: merge(id, enKeywords),
+      /*
+        The service's own name is always a phrase, so a service added in the
+        CMS is findable straight away without anyone editing the keyword tables
+        above. extraKeywords only adds synonyms the name does not contain.
+      */
+      keywords: [...merge(id, enKeywords), ...s.extraKeywords],
       phrases: [s.name.toLowerCase(), ...mergePhrases(id)],
       answer: `${s.body}\n\n${a.coversPrefix}: ${s.detail.join('; ')}.`,
       link: {
-        href: `${prefix}/services#${slug}`,
+        href: `${prefix}/services#${s.slug}`,
         label: a.moreOn(s.name.toLowerCase()),
       },
     };
@@ -179,9 +191,7 @@ export function buildEntries(locale: Locale): Entry[] {
     id: 'services-overview',
     keywords: merge('services-overview', enKeywords),
     phrases: mergePhrases('services-overview'),
-    answer: a.sevenThings(
-      serviceSlugs.map((s) => t.services.items[s].name.toLowerCase()).join(', '),
-    ),
+    answer: a.sevenThings(services.map((s) => s.name.toLowerCase()).join(', ')),
     link: linkFor('services-overview', '/services'),
   };
 
@@ -236,7 +246,11 @@ export type MatchResult = {
   id: string | null;
 };
 
-export function match(question: string, locale: Locale): MatchResult {
+export function match(
+  question: string,
+  locale: Locale,
+  knowledge: Knowledge,
+): MatchResult {
   const t = getDict(locale);
   const a = t.assistant;
   const normalized = normalize(question);
@@ -249,7 +263,7 @@ export function match(question: string, locale: Locale): MatchResult {
   }
 
   const tokens = tokenize(normalized, locale);
-  const entries = buildEntries(locale);
+  const entries = buildEntries(locale, knowledge);
 
   let best: Entry | null = null;
   let bestScore = 0;
@@ -270,7 +284,7 @@ export function match(question: string, locale: Locale): MatchResult {
   }
 
   if (!best || bestScore < 1) {
-    return { answer: fill(a.fallback, values()), id: null };
+    return { answer: fill(a.fallback, values(knowledge)), id: null };
   }
 
   return { answer: best.answer, link: best.link, id: best.id };

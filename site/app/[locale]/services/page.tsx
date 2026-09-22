@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import WingRule from '@/components/WingRule';
+import { getBusiness, getServices } from '@/cms/content';
 import { getDict, locales, type Locale } from '@/content/i18n';
-import { business, pathFor, serviceImages, serviceSlugs } from '@/content/site';
+import { pathFor } from '@/content/site';
 import { alternatesFor } from '../layout';
 import styles from './services.module.css';
 
@@ -31,6 +32,7 @@ export default async function ServicesPage({
 }) {
   const locale = toLocale((await params).locale);
   const t = getDict(locale);
+  const [services, business] = await Promise.all([getServices(locale), getBusiness()]);
 
   return (
     <>
@@ -53,9 +55,8 @@ export default async function ServicesPage({
       <section className="section" style={{ paddingTop: 'clamp(2.5rem, 5vw, 4rem)' }}>
         <div className="container">
           <ol className={styles.list}>
-            {serviceSlugs.map((slug, i) => {
-              const s = t.services.items[slug];
-              const img = serviceImages[slug];
+            {services.map((s, i) => {
+              const img = s.image;
               return (
                 /*
                   No scroll-reveal here: these <li>s are the anchor targets for
@@ -64,7 +65,7 @@ export default async function ServicesPage({
                   scroll — so the heading lands under the sticky header once the
                   transform resolves.
                 */
-                <li key={slug} id={slug} className={styles.item}>
+                <li key={s.slug} id={s.slug} className={styles.item}>
                   <div className={styles.itemHead}>
                     <span className={styles.num}>
                       {String(i + 1).padStart(2, '0')}
@@ -96,11 +97,12 @@ export default async function ServicesPage({
                     {img && (
                       <div className={styles.itemMedia}>
                         <Image
-                          src={img}
-                          alt={s.imageAlt ?? ''}
+                          src={img.src}
+                          alt={img.alt}
                           width={900}
                           height={1200}
                           sizes="(max-width: 900px) 92vw, 420px"
+                          style={{ objectPosition: img.focus }}
                         />
                       </div>
                     )}

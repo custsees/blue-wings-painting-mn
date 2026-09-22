@@ -3,8 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
+import type { BusinessView, ServiceView } from '@/cms/content';
 import { getDict, type Locale } from '@/content/i18n';
-import { business, navKeys, pathFor } from '@/content/site';
+import { navKeys, pathFor } from '@/content/site';
 import { match } from './assistant-match';
 
 type Message = {
@@ -16,7 +17,15 @@ type Message = {
 
 let nextId = 0;
 
-export default function Assistant({ locale }: { locale: Locale }) {
+export default function Assistant({
+  locale,
+  business,
+  services,
+}: {
+  locale: Locale;
+  business: BusinessView;
+  services: ServiceView[];
+}) {
   const pathname = usePathname();
   const t = getDict(locale);
   const a = t.assistant;
@@ -56,7 +65,7 @@ export default function Assistant({ locale }: { locale: Locale }) {
   function ask(question: string) {
     const text = question.trim();
     if (!text) return;
-    const result = match(text, locale);
+    const result = match(text, locale, { services, business });
     setMessages((prev) => [
       ...prev,
       { id: nextId++, role: 'user', text },

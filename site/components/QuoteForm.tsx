@@ -1,13 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { BusinessView } from '@/cms/content';
 import { fill, getDict, type Locale } from '@/content/i18n';
-import { business, serviceSlugs } from '@/content/site';
 
 type Status = 'idle' | 'sending' | 'sent';
 
 type Props = {
   locale: Locale;
+  /* Plain data: this is a client component, so no helper functions. */
+  business: BusinessView;
+  /* Service names in this locale, in display order, for the dropdown. */
+  serviceNames: string[];
   /**
    * True when the server can send the estimate itself (RESEND_API_KEY is set).
    * It changes what the visitor is asked to do, so it is decided on the server
@@ -16,7 +20,12 @@ type Props = {
   serverSend?: boolean;
 };
 
-export default function QuoteForm({ locale, serverSend = false }: Props) {
+export default function QuoteForm({
+  locale,
+  business,
+  serviceNames,
+  serverSend = false,
+}: Props) {
   const t = getDict(locale);
   const f = t.form;
   const [status, setStatus] = useState<Status>('idle');
@@ -242,9 +251,9 @@ export default function QuoteForm({ locale, serverSend = false }: Props) {
             <option value="" disabled>
               {f.chooseOne}
             </option>
-            {serviceSlugs.map((slug) => (
-              <option key={slug} value={t.services.items[slug].name}>
-                {t.services.items[slug].name}
+            {serviceNames.map((name) => (
+              <option key={name} value={name}>
+                {name}
               </option>
             ))}
             <option value={f.somethingElse}>{f.somethingElse}</option>

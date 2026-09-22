@@ -2,15 +2,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BeforeAfter from '@/components/BeforeAfter';
 import WingRule from '@/components/WingRule';
-import { getDict, locales, type Locale } from '@/content/i18n';
 import {
-  business,
-  namedCities,
-  pathFor,
-  projectImages,
-  projectSlugs,
-  serviceSlugs,
-} from '@/content/site';
+  getBusiness,
+  getFinishedWork,
+  getProjects,
+  getServices,
+} from '@/cms/content';
+import { getDict, locales, type Locale } from '@/content/i18n';
+import { pathFor } from '@/content/site';
 import styles from './home.module.css';
 
 export default async function HomePage({
@@ -22,9 +21,27 @@ export default async function HomePage({
   const locale = ((locales as readonly string[]).includes(raw) ? raw : 'en') as Locale;
   const t = getDict(locale);
 
-  const heroSlug = projectSlugs[0];
-  const hero = t.gallery.items[heroSlug];
-  const heroImg = projectImages[heroSlug];
+  const [projects, services, finished, business] = await Promise.all([
+    getProjects(locale),
+    getServices(locale),
+    getFinishedWork(locale),
+    getBusiness(),
+  ]);
+
+  /*
+    The hero is whichever pair the client has put first, and the proof strip is
+    the rest. Chosen by position rather than by slug so reordering in the CMS
+    just works — the strongest before/after should be able to lead without a
+    code change.
+  */
+  const [hero, ...rest] = projects;
+
+  /*
+    Same fix as the gallery and the about page: this photo used to be a
+    hardcoded /img path paired with t.gallery.finished[0].alt, two files joined
+    by index. Image and alt now come from one record.
+  */
+  const areaPhoto = finished[0] ?? null;
 
   return (
     <>
@@ -54,8 +71,8 @@ export default async function HomePage({
 
           <div className={styles.heroMedia}>
             <BeforeAfter
-              before={{ ...heroImg.before, alt: hero.beforeAlt }}
-              after={{ ...heroImg.after, alt: hero.afterAlt }}
+              before={hero.before}
+              after={hero.after}
               priority
               label={t.common.dragToCompare(hero.title.toLowerCase())}
               beforeLabel={t.common.before}
@@ -97,20 +114,20 @@ export default async function HomePage({
           </div>
 
           <ul className={styles.svcGrid}>
-            {serviceSlugs.map((slug, i) => (
+            {services.map((service, i) => (
               /*
                 No scroll-reveal on these. The grid fakes its cell borders with
                 1px gaps over a tinted background, so a card sitting at
                 opacity 0 shows that tint as a solid rectangle and the whole
                 table looks broken mid-animation.
               */
-              <li key={slug} className={styles.svcCard}>
-                <Link href={`${pathFor('services', locale)}#${slug}`}>
+              <li key={service.slug} className={styles.svcCard}>
+                <Link href={`${pathFor('services', locale)}#${service.slug}`}>
                   <span className={styles.svcNum}>
                     {String(i + 1).padStart(2, '0')}
                   </span>
-                  <h3 className={styles.svcName}>{t.services.items[slug].name}</h3>
-                  <p className={styles.svcShort}>{t.services.items[slug].short}</p>
+                  <h3 className={styles.svcName}>{service.name}</h3>
+                  <p className={styles.svcShort}>{service.short}</p>
                 </Link>
               </li>
             ))}
@@ -135,18 +152,16 @@ export default async function HomePage({
           </div>
 
           <div className={styles.proofGrid}>
-            {projectSlugs.slice(1).map((slug, i) => {
-              const p = t.gallery.items[slug];
-              const img = projectImages[slug];
+            {rest.map((p, i) => {
               return (
                 <figure
-                  key={slug}
+                  key={p.slug}
                   className={`reveal ${styles.proofItem}`}
                   data-reveal-delay={i * 110}
                 >
                   <BeforeAfter
-                    before={{ ...img.before, alt: p.beforeAlt }}
-                    after={{ ...img.after, alt: p.afterAlt }}
+                    before={p.before}
+                    after={p.after}
                     label={t.common.dragToCompare(p.title.toLowerCase())}
                     beforeLabel={t.common.before}
                     afterLabel={t.common.after}
@@ -196,7 +211,7 @@ export default async function HomePage({
             <p className="eyebrow">{t.home.areaEyebrow}</p>
             <h2 className="h2">{t.home.areaTitle}</h2>
             <p className="lede" style={{ marginTop: '1rem' }}>
-              {t.common.areaIncluding(namedCities.join(', '))}. {t.home.areaLede}
+              {t.common.areaIncluding(business.cities.join(', '))}. {t.home.areaLede}
             </p>
             <div className={styles.heroActions}>
               <Link className="btn" href={pathFor('contact', locale)}>
@@ -204,15 +219,18 @@ export default async function HomePage({
               </Link>
             </div>
           </div>
-          <div className={styles.areaMedia}>
-            <Image
-              src="/img/exterior-board-batten-gables.jpg"
-              alt={t.gallery.finished[0].alt}
-              width={1500}
-              height={1280}
-              sizes="(max-width: 900px) 92vw, 620px"
-            />
-          </div>
+          {areaPhoto ? (
+            <div className={styles.areaMedia}>
+              <Image
+                src={areaPhoto.image.src}
+                alt={areaPhoto.image.alt}
+                width={1500}
+                height={1280}
+                sizes="(max-width: 900px) 92vw, 620px"
+                style={{ objectPosition: areaPhoto.image.focus }}
+              />
+            </div>
+          ) : null}
         </div>
       </section>
     </>

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import QuoteForm from '@/components/QuoteForm';
 import WingRule from '@/components/WingRule';
-import { getDict, locales, type Locale } from '@/content/i18n';
-import { business, namedCities, smsHrefFor } from '@/content/site';
+import { getBusiness, getServices } from '@/cms/content';
+import { smsHrefOf } from '@/cms/contact';
+import { fill, getDict, locales, type Locale } from '@/content/i18n';
 import { alternatesFor } from '../layout';
 import styles from './contact.module.css';
 
@@ -16,9 +17,16 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const t = getDict(toLocale((await params).locale));
+  const business = await getBusiness();
   return {
     title: t.contact.meta.title,
-    description: t.contact.meta.description,
+    /*
+      The number is filled in rather than written out. This description used to
+      contain it verbatim in both languages — invisible from the admin panel,
+      so changing the phone in the CMS would have updated every call button on
+      the site while leaving the Google result quoting the old number.
+    */
+    description: fill(t.contact.meta.description, { phone: business.phone }),
     alternates: alternatesFor('/contact'),
   };
 }
@@ -30,8 +38,10 @@ export default async function ContactPage({
 }) {
   const locale = toLocale((await params).locale);
   const t = getDict(locale);
+  const [business, services] = await Promise.all([getBusiness(), getServices(locale)]);
 
-  const smsHref = smsHrefFor(
+  const smsHref = smsHrefOf(
+    business.phone,
     locale === 'es'
       ? 'Hola, quiero un presupuesto gratis para '
       : "Hi! I'd like a free estimate for ",
@@ -61,7 +71,12 @@ export default async function ContactPage({
             <h2 className="h3" style={{ marginBottom: '1.25rem' }}>
               {t.contact.formTitle}
             </h2>
-            <QuoteForm locale={locale} serverSend={Boolean(process.env.RESEND_API_KEY)} />
+            <QuoteForm
+              locale={locale}
+              business={business}
+              serviceNames={services.map((service) => service.name)}
+              serverSend={Boolean(process.env.RESEND_API_KEY)}
+            />
           </div>
 
           <aside className={styles.aside}>
@@ -87,20 +102,22 @@ export default async function ContactPage({
               <h2 className={styles.cardHead}>{t.contact.areaLabel}</h2>
               <p className={styles.areaText}>
                 {t.common.areaName} —{' '}
-                {t.common.areaIncluding(namedCities.join(', '))}.
+                {t.common.areaIncluding(business.cities.join(', '))}.
               </p>
             </div>
 
             <div className={styles.card}>
               <h2 className={styles.cardHead}>{t.contact.followLabel}</h2>
-              <a
-                className={styles.mid}
-                href={business.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t.contact.facebookLink}
-              </a>
+              {business.facebook ? (
+                <a
+                  className={styles.mid}
+                  href={business.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t.contact.facebookLink}
+                </a>
+              ) : null}
               {/*
                 RESERVED — Facebook page-feed embed.
                 Blocked on Facebook page access / app review (see the private

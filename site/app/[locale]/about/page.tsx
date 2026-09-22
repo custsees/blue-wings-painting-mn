@@ -3,14 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BeforeAfter from '@/components/BeforeAfter';
 import WingRule from '@/components/WingRule';
+import { getBusiness, getFinishedWork, getProjects } from '@/cms/content';
 import { getDict, locales, type Locale } from '@/content/i18n';
-import {
-  business,
-  namedCities,
-  pathFor,
-  projectImages,
-  projectSlugs,
-} from '@/content/site';
+import { pathFor } from '@/content/site';
 import { alternatesFor } from '../layout';
 import styles from './about.module.css';
 
@@ -39,9 +34,28 @@ export default async function AboutPage({
   const locale = toLocale((await params).locale);
   const t = getDict(locale);
 
-  const slug = projectSlugs[1];
-  const pair = t.gallery.items[slug];
-  const img = projectImages[slug];
+  const [projects, finished, business] = await Promise.all([
+    getProjects(locale),
+    getFinishedWork(locale),
+    getBusiness(),
+  ]);
+
+  /*
+    The second pair, falling back to the first. Both are chosen by position
+    rather than by slug so the client can reorder or replace pairs in the CMS
+    without this page 404-ing on a slug that no longer exists.
+  */
+  const pair = projects[1] ?? projects[0] ?? null;
+
+  /*
+    The closing photo used to be a hardcoded /img path paired with
+    t.gallery.finished[2].alt — a second copy of the index-coupling the gallery
+    had, and a quieter one: reordering the finished work in the CMS would leave
+    this image described by another photo's alt text, which only a screen
+    reader user would ever notice. Taking the image and its alt from the same
+    record makes that impossible.
+  */
+  const areaPhoto = finished[2] ?? finished[finished.length - 1] ?? null;
 
   return (
     <>
@@ -84,15 +98,17 @@ export default async function AboutPage({
               </Link>
             </div>
           </div>
-          <div className={styles.splitMedia}>
-            <BeforeAfter
-              before={{ ...img.before, alt: pair.beforeAlt }}
-              after={{ ...img.after, alt: pair.afterAlt }}
-              label={t.common.dragToCompare(pair.title.toLowerCase())}
-              beforeLabel={t.common.before}
-              afterLabel={t.common.after}
-            />
-          </div>
+          {pair ? (
+            <div className={styles.splitMedia}>
+              <BeforeAfter
+                before={pair.before}
+                after={pair.after}
+                label={t.common.dragToCompare(pair.title.toLowerCase())}
+                beforeLabel={t.common.before}
+                afterLabel={t.common.after}
+              />
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -136,7 +152,7 @@ export default async function AboutPage({
             <p className="eyebrow">{t.about.areaEyebrow}</p>
             <h2 className="h2">{t.home.areaTitle}</h2>
             <p className="lede" style={{ marginTop: '1rem' }}>
-              {t.common.areaIncluding(namedCities.join(', '))}.
+              {t.common.areaIncluding(business.cities.join(', '))}.
             </p>
             <p className={styles.esBlock}>
               <strong>{business.spanish}</strong> —{' '}
@@ -152,15 +168,18 @@ export default async function AboutPage({
               </a>
             </div>
           </div>
-          <div className={styles.areaMedia}>
-            <Image
-              src="/img/exterior-addition-lattice.jpg"
-              alt={t.gallery.finished[2].alt}
-              width={736}
-              height={1005}
-              sizes="(max-width: 900px) 92vw, 480px"
-            />
-          </div>
+          {areaPhoto ? (
+            <div className={styles.areaMedia}>
+              <Image
+                src={areaPhoto.image.src}
+                alt={areaPhoto.image.alt}
+                width={736}
+                height={1005}
+                sizes="(max-width: 900px) 92vw, 480px"
+                style={{ objectPosition: areaPhoto.image.focus }}
+              />
+            </div>
+          ) : null}
         </div>
       </section>
     </>
