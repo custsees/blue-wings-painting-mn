@@ -6,7 +6,7 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import RevealController from '@/components/RevealController';
 import { themeScript } from '@/components/Theme';
-import { getBusiness, getServices } from '@/cms/content';
+import { getBusiness, getHomeCopy, getServices } from '@/cms/content';
 import { getDict, locales, type Locale } from '@/content/i18n';
 import '../globals.css';
 
@@ -62,17 +62,21 @@ export async function generateMetadata({
   const locale = (locales as readonly string[]).includes(raw)
     ? (raw as Locale)
     : 'en';
-  const t = getDict(locale);
-  const business = await getBusiness();
+  /*
+    The site-wide default title and description are the home page's, and those
+    are now the client's to edit — so they are read here rather than from the
+    dictionary.
+  */
+  const [business, home] = await Promise.all([getBusiness(), getHomeCopy(locale)]);
 
   return {
     metadataBase: new URL(business.siteUrl),
     // The live Systeme site ships the title as "Blue Wings Pinting MN". Fixed.
     title: {
-      default: t.home.meta.title,
+      default: home.meta.title,
       template: `%s — ${business.nameFull}`,
     },
-    description: t.home.meta.description,
+    description: home.meta.description,
     alternates: {
       canonical: canonicalPath(locale),
       languages: {
@@ -87,8 +91,8 @@ export async function generateMetadata({
       alternateLocale: locale === 'es' ? 'en_US' : 'es_US',
       url: `${business.siteUrl}${canonicalPath(locale)}`,
       siteName: business.nameFull,
-      title: t.home.meta.title,
-      description: t.home.meta.description,
+      title: home.meta.title,
+      description: home.meta.description,
       images: [
         {
           url: '/img/exterior-white-brick.jpg',
@@ -118,7 +122,11 @@ export default async function LocaleLayout({
   if (!(locales as readonly string[]).includes(raw)) notFound();
   const locale = raw as Locale;
   const t = getDict(locale);
-  const [business, services] = await Promise.all([getBusiness(), getServices(locale)]);
+  const [business, services, home] = await Promise.all([
+    getBusiness(),
+    getServices(locale),
+    getHomeCopy(locale),
+  ]);
 
   /**
    * LocalBusiness structured data.
@@ -140,7 +148,7 @@ export default async function LocaleLayout({
     email: business.email,
     image: `${business.siteUrl}/img/blue-wings-logo.jpg`,
     logo: `${business.siteUrl}/img/blue-wings-logo.jpg`,
-    description: t.home.meta.description,
+    description: home.meta.description,
     address: {
       '@type': 'PostalAddress',
       addressRegion: 'MN',

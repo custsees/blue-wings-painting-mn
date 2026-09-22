@@ -92,6 +92,12 @@ export const revalidateCollectionOnDelete =
     return doc;
   };
 
+/** Home page copy only touches the home page, in both languages. */
+export const revalidateHomePage: GlobalAfterChangeHook = ({ doc }) => {
+  purge([HOME], 'home page text change');
+  return doc;
+};
+
 /** Business facts touch every page, plus the sitemap and robots. */
 export const revalidateBusinessInfo: GlobalAfterChangeHook = ({ doc }) => {
   purge(ALL_PAGES, 'business info change');

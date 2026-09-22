@@ -5,6 +5,7 @@ import WingRule from '@/components/WingRule';
 import {
   getBusiness,
   getFinishedWork,
+  getHomeCopy,
   getProjects,
   getServices,
 } from '@/cms/content';
@@ -21,11 +22,12 @@ export default async function HomePage({
   const locale = ((locales as readonly string[]).includes(raw) ? raw : 'en') as Locale;
   const t = getDict(locale);
 
-  const [projects, services, finished, business] = await Promise.all([
+  const [projects, services, finished, business, home] = await Promise.all([
     getProjects(locale),
     getServices(locale),
     getFinishedWork(locale),
     getBusiness(),
+    getHomeCopy(locale),
   ]);
 
   /*
@@ -49,15 +51,15 @@ export default async function HomePage({
       <section className={`on-ink ${styles.hero}`}>
         <div className={`wide ${styles.heroGrid}`}>
           <div className={styles.heroCopy}>
-            <p className="eyebrow">{t.home.eyebrow}</p>
+            <p className="eyebrow">{home.eyebrow}</p>
             <h1 className="display">
-              {t.home.h1a}
+              {home.h1a}
               <br />
-              {t.home.h1b}
+              {home.h1b}
               <br />
-              <span className={styles.heroAccent}>{t.home.h1accent}</span>
+              <span className={styles.heroAccent}>{home.h1accent}</span>
             </h1>
-            <p className="lede">{t.home.lede}</p>
+            <p className="lede">{home.lede}</p>
             <div className={styles.heroActions}>
               <Link className="btn" href={pathFor('contact', locale)}>
                 {t.common.getFreeEstimate}
@@ -90,7 +92,7 @@ export default async function HomePage({
         <div className="container">
           <WingRule />
           <div className={styles.propsGrid}>
-            {t.home.valueProps.map((p, i) => (
+            {home.valueProps.map((p, i) => (
               <div key={p.title} className="reveal" data-reveal-delay={i * 90}>
                 <h2 className="h3">{p.title}</h2>
                 <p>{p.body}</p>
@@ -105,8 +107,8 @@ export default async function HomePage({
         <div className="container">
           <div className={styles.headRow}>
             <div>
-              <p className="eyebrow">{t.home.servicesEyebrow}</p>
-              <h2 className="h2">{t.home.servicesTitle}</h2>
+              <p className="eyebrow">{home.servicesEyebrow}</p>
+              <h2 className="h2">{home.servicesTitle}</h2>
             </div>
             <Link className={styles.headLink} href={pathFor('services', locale)}>
               {t.common.seeAllServices}
@@ -140,10 +142,10 @@ export default async function HomePage({
         <div className="container">
           <div className={styles.headRow}>
             <div>
-              <p className="eyebrow">{t.home.proofEyebrow}</p>
-              <h2 className="h2">{t.home.proofTitle}</h2>
+              <p className="eyebrow">{home.proofEyebrow}</p>
+              <h2 className="h2">{home.proofTitle}</h2>
               <p className="lede" style={{ marginTop: '1rem', maxWidth: '54ch' }}>
-                {t.home.proofLede}
+                {home.proofLede}
               </p>
             </div>
             <Link className={styles.headLink} href={pathFor('gallery', locale)}>
@@ -181,9 +183,9 @@ export default async function HomePage({
       {/* ---------- process ---------- */}
       <section className="section">
         <div className="container">
-          <p className="eyebrow">{t.home.processEyebrow}</p>
+          <p className="eyebrow">{home.processEyebrow}</p>
           <h2 className="h2" style={{ maxWidth: '18ch' }}>
-            {t.home.processTitle}
+            {home.processTitle}
           </h2>
 
           <ol className={styles.steps}>
@@ -208,10 +210,10 @@ export default async function HomePage({
       <section className={styles.area}>
         <div className={`container ${styles.areaInner}`}>
           <div>
-            <p className="eyebrow">{t.home.areaEyebrow}</p>
-            <h2 className="h2">{t.home.areaTitle}</h2>
+            <p className="eyebrow">{home.areaEyebrow}</p>
+            <h2 className="h2">{home.areaTitle}</h2>
             <p className="lede" style={{ marginTop: '1rem' }}>
-              {t.common.areaIncluding(business.cities.join(', '))}. {t.home.areaLede}
+              {t.common.areaIncluding(business.cities.join(', '))}. {home.areaLede}
             </p>
             <div className={styles.heroActions}>
               <Link className="btn" href={pathFor('contact', locale)}>

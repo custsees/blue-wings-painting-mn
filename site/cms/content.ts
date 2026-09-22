@@ -194,3 +194,57 @@ export const getBusiness = cache(async (): Promise<BusinessView> => {
     cities: (info.namedCities ?? []).map((c) => c.name),
   };
 });
+
+export type HomeCopy = {
+  meta: { title: string; description: string };
+  eyebrow: string;
+  h1a: string;
+  h1b: string;
+  h1accent: string;
+  lede: string;
+  valueProps: { title: string; body: string }[];
+  servicesEyebrow: string;
+  servicesTitle: string;
+  proofEyebrow: string;
+  proofTitle: string;
+  proofLede: string;
+  processEyebrow: string;
+  processTitle: string;
+  areaEyebrow: string;
+  areaTitle: string;
+  areaLede: string;
+};
+
+/**
+ * Home page wording.
+ *
+ * Shaped to match what `getDict(locale).home` returned, so the page reads the
+ * same either way and the swap is a one-line change per usage rather than a
+ * rewrite. The meta pair is flattened in the CMS (metaTitle/metaDescription,
+ * because Payload has no nested-object field worth the extra click) and put
+ * back into the nested shape here.
+ */
+export const getHomeCopy = cache(async (locale: Locale): Promise<HomeCopy> => {
+  const payload = await client();
+  const doc = await payload.findGlobal({ slug: 'homePage', locale });
+
+  return {
+    meta: { title: doc.metaTitle, description: doc.metaDescription },
+    eyebrow: doc.eyebrow,
+    h1a: doc.h1a,
+    h1b: doc.h1b,
+    h1accent: doc.h1accent,
+    lede: doc.lede,
+    valueProps: (doc.valueProps ?? []).map((p) => ({ title: p.title, body: p.body })),
+    servicesEyebrow: doc.servicesEyebrow,
+    servicesTitle: doc.servicesTitle,
+    proofEyebrow: doc.proofEyebrow,
+    proofTitle: doc.proofTitle,
+    proofLede: doc.proofLede,
+    processEyebrow: doc.processEyebrow,
+    processTitle: doc.processTitle,
+    areaEyebrow: doc.areaEyebrow,
+    areaTitle: doc.areaTitle,
+    areaLede: doc.areaLede,
+  };
+});

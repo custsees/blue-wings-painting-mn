@@ -265,5 +265,39 @@ await payload.updateGlobal({
 });
 payload.logger.info('business info set');
 
+/* ------------------------------------------------------------- home page */
+
+/*
+  The one piece of page copy the client owns. Seeded per locale so the Spanish
+  headline survives as written rather than being re-translated.
+*/
+for (const [code, dict] of [['en', en], ['es', es]] as const) {
+  await payload.updateGlobal({
+    slug: 'homePage',
+    locale: code,
+    data: {
+      metaTitle: dict.home.meta.title,
+      metaDescription: dict.home.meta.description,
+      eyebrow: dict.home.eyebrow,
+      h1a: dict.home.h1a,
+      h1b: dict.home.h1b,
+      h1accent: dict.home.h1accent,
+      lede: dict.home.lede,
+      valueProps: dict.home.valueProps.map((p) => ({ title: p.title, body: p.body })),
+      servicesEyebrow: dict.home.servicesEyebrow,
+      servicesTitle: dict.home.servicesTitle,
+      proofEyebrow: dict.home.proofEyebrow,
+      proofTitle: dict.home.proofTitle,
+      proofLede: dict.home.proofLede,
+      processEyebrow: dict.home.processEyebrow,
+      processTitle: dict.home.processTitle,
+      areaEyebrow: dict.home.areaEyebrow,
+      areaTitle: dict.home.areaTitle,
+      areaLede: dict.home.areaLede,
+    },
+  });
+  payload.logger.info(`home page text set (${code})`);
+}
+
 payload.logger.info(`seed complete for locales: ${locales.join(', ')}`);
 process.exit(0);

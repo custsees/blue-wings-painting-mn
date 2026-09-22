@@ -66,6 +66,13 @@ export type Dict = {
     after: string;
   };
 
+  /*
+    NOTE: the site no longer renders this. Home page wording is edited by the
+    client under Content -> Home Page Text and read via getHomeCopy(). What is
+    left here is the seed source for a fresh database, and the type that keeps
+    the two shapes in step. Editing the headline below will not change the
+    site.
+  */
   home: {
     meta: Meta;
     eyebrow: string;

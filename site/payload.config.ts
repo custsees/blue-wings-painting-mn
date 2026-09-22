@@ -12,6 +12,7 @@ import { Projects } from './cms/collections/Projects';
 import { FinishedWork } from './cms/collections/FinishedWork';
 import { Services } from './cms/collections/Services';
 import { BusinessInfo } from './cms/globals/BusinessInfo';
+import { HomePage } from './cms/globals/HomePage';
 import { locales, defaultLocale } from './content/i18n';
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -52,7 +53,7 @@ export default buildConfig({
   },
 
   collections: [Projects, FinishedWork, Services, Media, Users],
-  globals: [BusinessInfo],
+  globals: [HomePage, BusinessInfo],
 
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

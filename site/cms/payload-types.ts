@@ -94,9 +94,11 @@ export interface Config {
   };
   fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'es') | ('en' | 'es')[];
   globals: {
+    homePage: HomePage;
     businessInfo: BusinessInfo;
   };
   globalsSelect: {
+    homePage: HomePageSelect<false> | HomePageSelect<true>;
     businessInfo: BusinessInfoSelect<false> | BusinessInfoSelect<true>;
   };
   locale: 'en' | 'es';
@@ -516,6 +518,78 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   createdAt?: T;
 }
 /**
+ * The wording on the home page. Photos and services are edited separately, under Content.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homePage".
+ */
+export interface HomePage {
+  id: number;
+  /**
+   * Small line above the headline.
+   */
+  eyebrow: string;
+  /**
+   * First line.
+   */
+  h1a: string;
+  /**
+   * Second line.
+   */
+  h1b: string;
+  /**
+   * Third line, shown in blue.
+   */
+  h1accent: string;
+  /**
+   * The paragraph under the headline. Two sentences reads best; much longer pushes the photo below the fold on a phone.
+   */
+  lede: string;
+  /**
+   * Shown in a row across the page. Three fits the layout; four gets cramped.
+   */
+  valueProps: {
+    title: string;
+    body: string;
+    id?: string | null;
+  }[];
+  /**
+   * Above the services grid.
+   */
+  servicesEyebrow: string;
+  servicesTitle: string;
+  /**
+   * Above the before/after strip.
+   */
+  proofEyebrow: string;
+  proofTitle: string;
+  proofLede: string;
+  /**
+   * Above the numbered steps. The steps themselves also appear on the Services page, so they are not editable here.
+   */
+  processEyebrow: string;
+  processTitle: string;
+  /**
+   * Above the service-area section.
+   */
+  areaEyebrow: string;
+  areaTitle: string;
+  /**
+   * Follows the list of cities, which is built from Business Info.
+   */
+  areaLede: string;
+  /**
+   * The clickable line in Google results. Around 60 characters before it is cut off.
+   */
+  metaTitle: string;
+  /**
+   * The grey text under it in Google results. Around 155 characters before it is cut off.
+   */
+  metaDescription: string;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
  * Phone, email and service area. These appear on every page.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -560,6 +634,39 @@ export interface BusinessInfo {
   domain: string;
   updatedAt?: string | null;
   createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homePage_select".
+ */
+export interface HomePageSelect<T extends boolean = true> {
+  eyebrow?: T;
+  h1a?: T;
+  h1b?: T;
+  h1accent?: T;
+  lede?: T;
+  valueProps?:
+    | T
+    | {
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  servicesEyebrow?: T;
+  servicesTitle?: T;
+  proofEyebrow?: T;
+  proofTitle?: T;
+  proofLede?: T;
+  processEyebrow?: T;
+  processTitle?: T;
+  areaEyebrow?: T;
+  areaTitle?: T;
+  areaLede?: T;
+  metaTitle?: T;
+  metaDescription?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
