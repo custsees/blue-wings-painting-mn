@@ -7,3 +7,7 @@ next-env.d.ts
 .gstack/
 .gstack/
 qa/
+
+# Payload
+.env
+.uploads/
