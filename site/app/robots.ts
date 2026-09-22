@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
-import { business } from '@/content/site';
+import { getBusiness } from '@/cms/content';
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const business = await getBusiness();
   return {
     rules: { userAgent: '*', allow: '/' },
     sitemap: `${business.siteUrl}/sitemap.xml`,

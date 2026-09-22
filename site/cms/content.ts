@@ -1,10 +1,11 @@
+import { cache } from 'react';
 import { getPayload } from 'payload';
 import config from '@payload-config';
 
 import type { Locale } from '@/content/i18n';
 import type { Media, Service } from './payload-types';
 import { objectPositionOf } from './focal';
-import { emailHrefOf, phoneHrefOf, smsHrefOf } from './contact';
+import { emailHrefOf, phoneHrefOf, telOf } from './contact';
 
 /**
  * Reading CMS content for the public pages.
@@ -26,6 +27,14 @@ import { emailHrefOf, phoneHrefOf, smsHrefOf } from './contact';
 async function client() {
   return getPayload({ config });
 }
+
+/*
+  Each getter is wrapped in React's cache() so it runs once per render pass no
+  matter how many components ask for it. The business facts are the reason:
+  they are needed by generateMetadata, by the JSON-LD in the layout, by the
+  header and by the footer — four calls that would otherwise be four queries
+  for one row on every page.
+*/
 
 /** Published only. Drafts are the client's work-in-progress, not the site. */
 const PUBLISHED = { _status: { equals: 'published' } } as const;
@@ -52,7 +61,7 @@ export type ProjectView = {
   after: Img;
 };
 
-export async function getProjects(locale: Locale): Promise<ProjectView[]> {
+export const getProjects = cache(async (locale: Locale): Promise<ProjectView[]> => {
   const payload = await client();
   const { docs } = await payload.find({
     collection: 'projects',
@@ -78,11 +87,11 @@ export async function getProjects(locale: Locale): Promise<ProjectView[]> {
       after,
     }];
   });
-}
+});
 
 export type FinishedWorkView = { id: number; image: Img; caption: string };
 
-export async function getFinishedWork(locale: Locale): Promise<FinishedWorkView[]> {
+export const getFinishedWork = cache(async (locale: Locale): Promise<FinishedWorkView[]> => {
   const payload = await client();
   const { docs } = await payload.find({
     collection: 'finishedWork',
@@ -98,7 +107,7 @@ export async function getFinishedWork(locale: Locale): Promise<FinishedWorkView[
     if (!image) return [];
     return [{ id: doc.id, image, caption: doc.caption }];
   });
-}
+});
 
 export type ServiceView = {
   slug: string;
@@ -125,7 +134,7 @@ function serviceView(doc: Service): ServiceView {
   };
 }
 
-export async function getServices(locale: Locale): Promise<ServiceView[]> {
+export const getServices = cache(async (locale: Locale): Promise<ServiceView[]> => {
   const payload = await client();
   const { docs } = await payload.find({
     collection: 'services',
@@ -136,13 +145,16 @@ export async function getServices(locale: Locale): Promise<ServiceView[]> {
     where: PUBLISHED,
   });
   return docs.map(serviceView);
-}
+});
 
 export type BusinessView = {
   name: string;
   nameFull: string;
   phone: string;
+  /** tel: link, derived. */
   phoneHref: string;
+  /** E.164, for schema.org structured data. */
+  telephone: string;
   email: string;
   emailHref: string;
   facebook: string | null;
@@ -150,18 +162,20 @@ export type BusinessView = {
   domain: string;
   siteUrl: string;
   cities: string[];
-  smsHref: (body: string) => string;
 };
 
 /**
  * The facts, with every link derived rather than stored.
  *
- * `phoneHref` and `smsHref` are computed from `phone` on purpose. The number
+ * Every link is computed from `phone` on purpose. The number
  * previously appeared in four places — two of them invisible from any admin
  * panel — so storing the links would have reintroduced exactly the drift this
- * is meant to remove.
+ * is meant to remove. The shape is kept free of functions so it can be handed
+ * straight to a client component — the header is one.
+ *
+ * For the SMS deep link, call smsHrefOf(business.phone, body) from cms/contact.
  */
-export async function getBusiness(): Promise<BusinessView> {
+export const getBusiness = cache(async (): Promise<BusinessView> => {
   const payload = await client();
   const info = await payload.findGlobal({ slug: 'businessInfo' });
 
@@ -170,6 +184,7 @@ export async function getBusiness(): Promise<BusinessView> {
     nameFull: info.nameFull,
     phone: info.phone,
     phoneHref: phoneHrefOf(info.phone),
+    telephone: telOf(info.phone),
     email: info.email,
     emailHref: emailHrefOf(info.email),
     facebook: info.facebook ?? null,
@@ -177,6 +192,5 @@ export async function getBusiness(): Promise<BusinessView> {
     domain: info.domain,
     siteUrl: info.siteUrl,
     cities: (info.namedCities ?? []).map((c) => c.name),
-    smsHref: (body: string) => smsHrefOf(info.phone, body),
   };
-}
+});

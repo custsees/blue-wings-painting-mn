@@ -1,9 +1,19 @@
 /**
- * Locale-invariant facts and asset references.
+ * Routing helpers, plus the original content the CMS was seeded from.
  *
- * Anything a visitor READS lives in `content/i18n.ts`, keyed by locale.
- * This file holds only what is the same in every language: phone numbers,
- * email, URLs, image paths, crop positions, slugs, and ordering.
+ * READ THIS BEFORE EDITING. The site no longer renders the facts, services,
+ * projects or photos below — those live in Payload now and are edited by the
+ * client at /admin. Changing `business.phone` here will not change the phone
+ * number on the site. It is kept because `cms/seed.ts` reads it to populate a
+ * fresh database, so a new environment (or a new client site built from this
+ * one) can be brought up without retyping anything.
+ *
+ * Still live, and still the right place for new code: `navKeys`, `pathFor`,
+ * and the slug types that `content/i18n.ts` uses to key its dictionaries.
+ * Those are routing and structure, not content.
+ *
+ * Anything a visitor READS that is still in code lives in `content/i18n.ts`,
+ * keyed by locale.
  *
  * Rules, per the project playbook and the private fact-and-proof ledger:
  *  - Nothing here that is not traceable to the client's own site, Facebook
@@ -124,11 +134,9 @@ export function pathFor(key: NavKey, locale: 'en' | 'es'): string {
   return `${prefix}${seg[key]}` || '/';
 }
 
-/**
- * SMS deep link. The current Systeme site routes every CTA through tel:/sms:,
- * which works on a phone and dead-ends on a laptop. We keep the fast path and
- * pair it with a real form everywhere it appears.
- */
-export function smsHrefFor(body: string): string {
-  return `sms:+16126365194?&body=${encodeURIComponent(body)}`;
-}
+/*
+  smsHrefFor lived here and hardcoded +16126365194 a second time. It is now
+  smsHrefOf(phone, body) in cms/contact.ts, built from the number the client
+  actually edits — see the note on that file about the five places this number
+  used to appear.
+*/

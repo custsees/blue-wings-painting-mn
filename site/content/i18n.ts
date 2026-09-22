@@ -484,9 +484,16 @@ const en: Dict = {
 
   contact: {
     meta: {
+      /*
+        {phone} is filled from the CMS at render — see fill() at the bottom of
+        this file. The number used to be typed out here in full, in both
+        languages, where no admin panel could reach it: changing it in the CMS
+        would have updated every visible call button while leaving the search
+        result telling people to ring the old one.
+      */
       title: 'Contact',
       description:
-        'Get a free painting estimate from Blue Wings Painting MN. Call (612) 636-5194, text, or send details through the form. Serving the Twin Cities metro. Hablamos Español.',
+        'Get a free painting estimate from Blue Wings Painting MN. Call {phone}, text, or send details through the form. Serving the Twin Cities metro. Hablamos Español.',
     },
     eyebrow: 'Contact',
     h1: 'Free estimate, no pressure.',
@@ -950,7 +957,7 @@ const es: Dict = {
     meta: {
       title: 'Contacto',
       description:
-        'Pide un presupuesto de pintura gratis a Blue Wings Painting MN. Llama al (612) 636-5194, manda mensaje o envía los detalles por el formulario. Atendemos el área metro de Twin Cities. Hablamos Español.',
+        'Pide un presupuesto de pintura gratis a Blue Wings Painting MN. Llama al {phone}, manda mensaje o envía los detalles por el formulario. Atendemos el área metro de Twin Cities. Hablamos Español.',
     },
     eyebrow: 'Contacto',
     h1: 'Presupuesto gratis, sin compromiso.',

@@ -6,8 +6,8 @@ import Footer from '@/components/Footer';
 import Header from '@/components/Header';
 import RevealController from '@/components/RevealController';
 import { themeScript } from '@/components/Theme';
+import { getBusiness, getServices } from '@/cms/content';
 import { getDict, locales, type Locale } from '@/content/i18n';
-import { business, namedCities, serviceSlugs } from '@/content/site';
 import '../globals.css';
 
 /*
@@ -63,6 +63,7 @@ export async function generateMetadata({
     ? (raw as Locale)
     : 'en';
   const t = getDict(locale);
+  const business = await getBusiness();
 
   return {
     metadataBase: new URL(business.siteUrl),
@@ -93,7 +94,7 @@ export async function generateMetadata({
           url: '/img/exterior-white-brick.jpg',
           width: 1009,
           height: 1500,
-          alt: t.services.items['interior-exterior'].imageAlt ?? business.nameFull,
+          alt: business.nameFull,
         },
       ],
     },
@@ -117,6 +118,7 @@ export default async function LocaleLayout({
   if (!(locales as readonly string[]).includes(raw)) notFound();
   const locale = raw as Locale;
   const t = getDict(locale);
+  const [business, services] = await Promise.all([getBusiness(), getServices(locale)]);
 
   /**
    * LocalBusiness structured data.
@@ -128,7 +130,13 @@ export default async function LocaleLayout({
     '@type': 'HousePainter',
     name: business.nameFull,
     url: `${business.siteUrl}${canonicalPath(locale)}`,
-    telephone: '+1-612-636-5194',
+    /*
+      Derived, not typed out. This was the fifth place the number appeared in
+      the codebase, in a fifth format, and it is the one that feeds Google's
+      knowledge panel — so a stale value here is the most expensive of the lot
+      and the least likely to be noticed.
+    */
+    telephone: business.telephone,
     email: business.email,
     image: `${business.siteUrl}/img/blue-wings-logo.jpg`,
     logo: `${business.siteUrl}/img/blue-wings-logo.jpg`,
@@ -138,7 +146,7 @@ export default async function LocaleLayout({
       addressRegion: 'MN',
       addressCountry: 'US',
     },
-    areaServed: namedCities.map((city) => ({
+    areaServed: business.cities.map((city) => ({
       '@type': 'City',
       name: `${city}, MN`,
     })),
@@ -147,12 +155,12 @@ export default async function LocaleLayout({
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: t.footer.services,
-      itemListElement: serviceSlugs.map((slug) => ({
+      itemListElement: services.map((service) => ({
         '@type': 'Offer',
         itemOffered: {
           '@type': 'Service',
-          name: t.services.items[slug].name,
-          description: t.services.items[slug].short,
+          name: service.name,
+          description: service.short,
         },
       })),
     },
@@ -184,10 +192,10 @@ export default async function LocaleLayout({
           {t.common.skipToContent}
         </a>
         <RevealController />
-        <Header locale={locale} />
+        <Header locale={locale} business={business} />
         <main id="main">{children}</main>
-        <Footer locale={locale} />
-        <Assistant locale={locale} />
+        <Footer locale={locale} business={business} services={services} />
+        <Assistant locale={locale} business={business} services={services} />
       </body>
     </html>
   );

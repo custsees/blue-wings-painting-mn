@@ -5,10 +5,22 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getDict, type Locale } from '@/content/i18n';
-import { business, navKeys, pathFor } from '@/content/site';
+import type { BusinessView } from '@/cms/content';
+import { navKeys, pathFor } from '@/content/site';
 import { ThemeToggle } from './Theme';
 
-export default function Header({ locale }: { locale: Locale }) {
+/*
+  This is a client component, so `business` has to be plain serializable data —
+  which is why BusinessView carries no helper functions. The SMS link is built
+  by callers from business.phone instead.
+*/
+export default function Header({
+  locale,
+  business,
+}: {
+  locale: Locale;
+  business: BusinessView;
+}) {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const t = getDict(locale);

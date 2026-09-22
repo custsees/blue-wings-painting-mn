@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDict, locales, type Locale } from '@/content/i18n';
-import { business } from '@/content/site';
+import { getBusiness } from '@/cms/content';
 
 export const runtime = 'nodejs';
 
@@ -52,7 +52,12 @@ async function emailLead(lead: Lead): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return false;
 
-  const to = process.env.QUOTE_TO_EMAIL || business.email;
+  /*
+    Falls back to whatever address is in the CMS, so changing it there also
+    changes where estimates land. QUOTE_TO_EMAIL still wins, for routing leads
+    somewhere else without touching the site's published address.
+  */
+  const to = process.env.QUOTE_TO_EMAIL || (await getBusiness()).email;
   /*
     onboarding@resend.dev is Resend's shared sender: it works the minute the
     key exists, with no DNS. Once bluewingspaintingmn.com is verified, set

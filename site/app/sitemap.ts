@@ -1,11 +1,12 @@
 import type { MetadataRoute } from 'next';
-import { business } from '@/content/site';
+import { getBusiness } from '@/cms/content';
 
 /**
  * Both languages, with hreflang alternates so Google serves the right one.
- * English URLs carry no locale prefix (see the rewrites in next.config.ts).
+ * English URLs carry no locale prefix (see the rewrite in middleware.ts).
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const business = await getBusiness();
   const now = new Date();
   const paths = ['', '/services', '/gallery', '/about', '/contact'];
 

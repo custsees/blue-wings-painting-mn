@@ -1,9 +1,24 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import type { BusinessView, ServiceView } from '@/cms/content';
 import { getDict, type Locale } from '@/content/i18n';
-import { business, namedCities, navKeys, pathFor, serviceSlugs } from '@/content/site';
+import { navKeys, pathFor } from '@/content/site';
 
-export default function Footer({ locale }: { locale: Locale }) {
+/*
+  The facts and the services arrive as props rather than being fetched here.
+  The layout already reads them for its metadata and structured data, so
+  passing them down keeps it to one query per render — and keeps this a plain
+  presentational component.
+*/
+export default function Footer({
+  locale,
+  business,
+  services,
+}: {
+  locale: Locale;
+  business: BusinessView;
+  services: ServiceView[];
+}) {
   const t = getDict(locale);
 
   return (
@@ -33,9 +48,12 @@ export default function Footer({ locale }: { locale: Locale }) {
 
         <div className="ft-col">
           <h2 className="ft-head">{t.footer.services}</h2>
-          {serviceSlugs.map((slug) => (
-            <Link key={slug} href={`${pathFor('services', locale)}#${slug}`}>
-              {t.services.items[slug].name}
+          {services.map((service) => (
+            <Link
+              key={service.slug}
+              href={`${pathFor('services', locale)}#${service.slug}`}
+            >
+              {service.name}
             </Link>
           ))}
         </div>
@@ -46,11 +64,13 @@ export default function Footer({ locale }: { locale: Locale }) {
             {business.phone}
           </a>
           <a href={business.emailHref}>{business.email}</a>
-          <a href={business.facebook} target="_blank" rel="noopener noreferrer">
-            Facebook
-          </a>
+          {business.facebook ? (
+            <a href={business.facebook} target="_blank" rel="noopener noreferrer">
+              Facebook
+            </a>
+          ) : null}
           <p className="ft-area">
-            {t.common.areaName} — {t.common.areaIncluding(namedCities.join(', '))}.
+            {t.common.areaName} — {t.common.areaIncluding(business.cities.join(', '))}.
           </p>
         </div>
       </div>

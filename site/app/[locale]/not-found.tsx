@@ -1,11 +1,13 @@
 import Link from 'next/link';
+import { getBusiness } from '@/cms/content';
 import { getDict } from '@/content/i18n';
-import { business, pathFor } from '@/content/site';
+import { pathFor } from '@/content/site';
 
 /* Next renders not-found outside the locale params, so this falls back to
    English. The header and footer around it still come from the layout. */
-export default function NotFound() {
+export default async function NotFound() {
   const t = getDict('en');
+  const business = await getBusiness();
   return (
     <section className="section container" style={{ textAlign: 'center' }}>
       <p className="eyebrow">404</p>
