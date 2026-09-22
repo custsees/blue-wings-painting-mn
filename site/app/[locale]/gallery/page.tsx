@@ -3,14 +3,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BeforeAfter from '@/components/BeforeAfter';
 import WingRule from '@/components/WingRule';
+import { getBusiness, getFinishedWork, getProjects } from '@/cms/content';
 import { getDict, locales, type Locale } from '@/content/i18n';
-import {
-  business,
-  finishedWorkImages,
-  pathFor,
-  projectImages,
-  projectSlugs,
-} from '@/content/site';
+import { pathFor } from '@/content/site';
 import { alternatesFor } from '../layout';
 import styles from './gallery.module.css';
 
@@ -39,6 +34,24 @@ export default async function GalleryPage({
   const locale = toLocale((await params).locale);
   const t = getDict(locale);
 
+  /*
+    Three reads, one per thing on the page. The pairs and the finished shots
+    each arrive as a list of whole objects carrying their own photo, alt text
+    and caption in this locale.
+
+    This used to be assembled here from `projectSlugs`, `projectImages` and
+    `t.gallery.items` — and, worse, the finished grid read
+    `finishedWorkImages[i]` against `t.gallery.finished[i]`, two arrays in two
+    different files joined by position. Adding a photo to one without adding a
+    matching entry to both language dictionaries threw at render. That is the
+    first thing a client with an "add a photo" button would have done.
+  */
+  const [projects, finished, business] = await Promise.all([
+    getProjects(locale),
+    getFinishedWork(locale),
+    getBusiness(),
+  ]);
+
   return (
     <>
       <section className={`on-ink ${styles.head}`}>
@@ -60,30 +73,26 @@ export default async function GalleryPage({
       <section className="section" style={{ paddingTop: 'clamp(2.5rem, 5vw, 4rem)' }}>
         <div className="container">
           <div className={styles.pairs}>
-            {projectSlugs.map((slug, i) => {
-              const p = t.gallery.items[slug];
-              const img = projectImages[slug];
-              return (
-                <figure
-                  key={slug}
-                  className={`reveal ${styles.pair}`}
-                  data-reveal-delay={(i % 2) * 100}
-                >
-                  <BeforeAfter
-                    before={{ ...img.before, alt: p.beforeAlt }}
-                    after={{ ...img.after, alt: p.afterAlt }}
-                    label={t.common.dragToCompare(p.title.toLowerCase())}
-                    beforeLabel={t.common.before}
-                    afterLabel={t.common.after}
-                  />
-                  <figcaption>
-                    <span className={styles.kind}>{p.kind}</span>
-                    <h2 className="h3">{p.title}</h2>
-                    <p>{p.summary}</p>
-                  </figcaption>
-                </figure>
-              );
-            })}
+            {projects.map((p, i) => (
+              <figure
+                key={p.slug}
+                className={`reveal ${styles.pair}`}
+                data-reveal-delay={(i % 2) * 100}
+              >
+                <BeforeAfter
+                  before={p.before}
+                  after={p.after}
+                  label={t.common.dragToCompare(p.title.toLowerCase())}
+                  beforeLabel={t.common.before}
+                  afterLabel={t.common.after}
+                />
+                <figcaption>
+                  <span className={styles.kind}>{p.kind}</span>
+                  <h2 className="h3">{p.title}</h2>
+                  <p>{p.summary}</p>
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </section>
@@ -99,20 +108,28 @@ export default async function GalleryPage({
           </p>
 
           <ul className={styles.grid}>
-            {finishedWorkImages.map((src, i) => (
+            {finished.map((item, i) => (
               <li
-                key={src}
+                key={item.id}
                 className={`reveal ${styles.gridItem}`}
                 data-reveal-delay={i * 90}
               >
                 <Image
-                  src={src}
-                  alt={t.gallery.finished[i].alt}
+                  src={item.image.src}
+                  alt={item.image.alt}
                   width={1200}
                   height={1400}
                   sizes="(max-width: 700px) 92vw, (max-width: 1100px) 45vw, 400px"
+                  /*
+                    The CSS crops these with object-fit: cover and no
+                    object-position, i.e. dead centre. That is still the default
+                    here, so untouched photos look exactly as they did — but a
+                    photo whose subject sits off-centre can now be nudged from
+                    the admin panel instead of needing a CSS edit.
+                  */
+                  style={{ objectPosition: item.image.focus }}
                 />
-                <span>{t.gallery.finished[i].caption}</span>
+                <span>{item.caption}</span>
               </li>
             ))}
           </ul>
